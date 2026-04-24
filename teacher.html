@@ -182,8 +182,9 @@ body {
 
 .hero-title {
   font-family: 'Huninn', sans-serif;
-  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-size: clamp(1.8rem, 4.5vw, 3rem);
   color: var(--leaf-deep);
+  white-space: normal;
   line-height: 1.15;
   margin-bottom: 0.3rem;
   letter-spacing: 0.05em;
@@ -221,11 +222,12 @@ body {
   background: var(--panel-bg);
   border: 3.5px solid var(--ink);
   border-radius: 18px;
-  padding: 1.3rem 1.8rem 1.1rem;
+  padding: 1.3rem 2.4rem 1.1rem;
   margin: 0.8rem auto 0;
   max-width: 100%;
   position: relative;
 }
+.hero-title br { display: inline; }
 [data-theme="dark"] .hero-card {
   border-color: var(--gold-light);
 }
@@ -929,6 +931,20 @@ body {
   background: var(--gold-light);
   transform: translateY(-1px);
 }
+.paper-download-btn-secondary {
+  background: transparent !important;
+  color: #FFFBEA !important;
+  border-color: rgba(255, 251, 234, 0.6) !important;
+  font-size: 0.82rem;
+}
+.paper-download-btn-secondary:hover {
+  background: rgba(255, 251, 234, 0.15) !important;
+  color: #FFFBEA !important;
+}
+[data-theme="dark"] .paper-download-btn-secondary {
+  color: #0D1B0F !important;
+  border-color: rgba(13, 27, 15, 0.6) !important;
+}
 .paper-close-btn {
   background: var(--danger);
   color: #FFFBEA;
@@ -952,23 +968,7 @@ body {
   justify-content: center;
 }
 
-.paper-pdf {
-  width: min(95vw, 900px);
-  height: min(85vh, 1200px);
-  border: none;
-  border-radius: 8px;
-  background: #F4EAD0;
-  display: block;
-}
-.paper-img-fallback {
-  display: none; /* 預設隱藏，若 iframe 失敗才顯示 */
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-}
-@media (max-width: 768px) {
-  .paper-pdf { height: 80vh; }
-}
+
 
 .paper-img {
   max-width: 100%;
@@ -1001,7 +1001,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  gap: 1.4rem;
+  gap: 1rem;
   margin: 1.8rem 0 1rem;
   flex-wrap: wrap;
   position: relative;
@@ -1009,16 +1009,16 @@ body {
 }
 .hero-npc {
   position: relative;
-  width: 95px;
-  height: 95px;
+  width: 140px;
+  height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
   animation: heroFloat 5s ease-in-out infinite;
 }
 .hero-npc img {
-  width: 85px;
-  height: 85px;
+  width: 130px;
+  height: 130px;
   object-fit: contain;
   position: relative;
   z-index: 2;
@@ -1073,13 +1073,13 @@ body {
   50% { transform: scale(1.25); opacity: 1; }
 }
 @media (max-width: 900px) {
-  .hero-npc { width: 65px; height: 65px; }
-  .hero-npc img { width: 60px; height: 60px; }
+  .hero-npc { width: 95px; height: 95px; }
+  .hero-npc img { width: 85px; height: 85px; }
   .hero-npcs { gap: 0.9rem; margin: 1.3rem 0 0.8rem; }
 }
 @media (max-width: 520px) {
-  .hero-npc { width: 56px; height: 56px; }
-  .hero-npc img { width: 50px; height: 50px; }
+  .hero-npc { width: 68px; height: 68px; }
+  .hero-npc img { width: 62px; height: 62px; }
   .hero-npcs { gap: 0.5rem; }
 }
 
@@ -1117,13 +1117,61 @@ body {
   background:
     conic-gradient(
       from 0deg,
-      rgba(248, 235, 180, 0.5),
-      rgba(255, 215, 90, 0.15) 30%,
-      rgba(248, 235, 180, 0.5) 60%,
-      rgba(255, 215, 90, 0.15) 90%,
-      rgba(248, 235, 180, 0.5)
+      rgba(255, 215, 0, 0.7),
+      rgba(255, 248, 200, 0.1) 15%,
+      rgba(255, 215, 0, 0.7) 25%,
+      rgba(255, 248, 200, 0.1) 40%,
+      rgba(255, 215, 0, 0.7) 50%,
+      rgba(255, 248, 200, 0.1) 65%,
+      rgba(255, 215, 0, 0.7) 75%,
+      rgba(255, 248, 200, 0.1) 90%,
+      rgba(255, 215, 0, 0.7)
     );
-  animation: sacredRotate 10s linear infinite, sacredPulse 3s ease-in-out infinite;
+  animation: sacredRotate 8s linear infinite, sacredPulse 2.5s ease-in-out infinite;
+  filter: blur(10px);
+}
+/* 公會長：十字光束（::before 偽元素做第二層光環） */
+.npc-card.npc-guild .npc-img-wrap::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 180%;
+  height: 180%;
+  background: 
+    radial-gradient(ellipse 8% 50% at center, rgba(255, 230, 100, 0.55) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 8% at center, rgba(255, 230, 100, 0.55) 0%, transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+  animation: guildCrossBeam 4s linear infinite;
+  filter: blur(3px);
+}
+/* 公會長：閃爍的星星 */
+.npc-card.npc-guild::before {
+  content: '✦';
+  position: absolute;
+  top: 22px;
+  left: 28px;
+  font-size: 1.3rem;
+  color: #FFE082;
+  z-index: 4;
+  pointer-events: none;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.9);
+  animation: guildStarTwinkle 2s ease-in-out infinite;
+}
+.npc-card.npc-guild::after {
+  content: '✦';
+  position: absolute;
+  top: 36px;
+  right: 32px;
+  font-size: 1rem;
+  color: #FFE082;
+  z-index: 4;
+  pointer-events: none;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.9);
+  animation: guildStarTwinkle 2s ease-in-out infinite;
+  animation-delay: 1s;
 }
 @keyframes sacredRotate {
   to { transform: translate(-50%, -50%) rotate(360deg); }
@@ -1132,6 +1180,16 @@ body {
   0%, 100% { opacity: 0.75; }
   50% { opacity: 1; }
 }
+@keyframes guildCrossBeam {
+  0% { transform: translate(-50%, -50%) rotate(0deg); opacity: 0.9; }
+  50% { transform: translate(-50%, -50%) rotate(180deg); opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(360deg); opacity: 0.9; }
+}
+@keyframes guildStarTwinkle {
+  0%, 100% { opacity: 0.4; transform: scale(0.7) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.4) rotate(180deg); }
+}
+
 
 /* 2. 金湯匙御廚：Boss 金光 + 星芒閃爍 */
 .npc-card.npc-boss .npc-aura {
@@ -1221,22 +1279,23 @@ body {
 .npc-card.npc-judge::after {
   content: '';
   position: absolute;
-  top: 115px;
+  top: 155px;
   left: 50%;
-  border: 2px solid rgba(156, 110, 199, 0.5);
+  border: 2.5px solid rgba(156, 110, 199, 0.7);
   border-radius: 50%;
-  z-index: 1;
+  z-index: 0;
   pointer-events: none;
-  animation: ringExpand 2.5s ease-out infinite;
+  animation: judgeRingExpand 2.6s ease-out infinite;
+  transform-origin: center center;
 }
 .npc-card.npc-judge::before {
-  width: 80px; height: 80px;
-  margin: -40px 0 0 -40px;
+  width: 110px; height: 28px;
+  margin: -14px 0 0 -55px;
 }
 .npc-card.npc-judge::after {
-  width: 80px; height: 80px;
-  margin: -40px 0 0 -40px;
-  animation-delay: 1.25s;
+  width: 110px; height: 28px;
+  margin: -14px 0 0 -55px;
+  animation-delay: 1.3s;
 }
 @keyframes judgePulse {
   0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
@@ -1244,6 +1303,12 @@ body {
 }
 @keyframes ringExpand {
   0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+@keyframes judgeRingExpand {
+  0% { transform: scale(0.4); opacity: 1; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
   100% { transform: scale(2.5); opacity: 0; }
 }
 
@@ -1859,14 +1924,13 @@ body {
     <div class="paper-modal-head">
       <div class="paper-modal-title">📄 紙本版課表</div>
       <div class="paper-modal-actions">
-        <a href="paper_schedule.pdf" download="台南小蚵人營隊課表.pdf" class="paper-download-btn" title="下載 PDF 檔">⬇️ PDF</a>
-        <a href="paper_schedule.png" download="台南小蚵人營隊課表.png" class="paper-download-btn" title="下載 PNG 檔">⬇️ PNG</a>
+        <a href="paper_schedule.png" download="台南小蚵人營隊課表.png" class="paper-download-btn" title="下載圖檔">⬇️ 下載圖片</a>
+        <a href="paper_schedule.pdf" download="台南小蚵人營隊課表.pdf" class="paper-download-btn paper-download-btn-secondary" title="下載 PDF 檔">📄 PDF</a>
         <button class="paper-close-btn" onclick="closePaperModal()">✕</button>
       </div>
     </div>
     <div class="paper-modal-body">
-      <iframe src="paper_schedule.pdf#view=FitH" class="paper-pdf" title="紙本版課表"></iframe>
-      <img src="paper_schedule.png" alt="紙本版課表" class="paper-img-fallback">
+      <img src="paper_schedule.png" alt="紙本版課表" class="paper-img">
     </div>
   </div>
 </div>
