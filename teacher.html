@@ -166,10 +166,15 @@ body {
   font-weight: 600;
   font-size: 0.9rem;
   letter-spacing: 0.15em;
-  margin-bottom: 1rem;
+  margin: 0 auto 1rem;
   border: 3px solid var(--ink);
   border-radius: 6px;
   text-transform: uppercase;
+}
+.hero-banner-wrap {
+  display: block;
+  text-align: center;
+  margin-bottom: 1rem;
 }
 [data-theme="dark"] .hero-banner {
   background: var(--leaf);
@@ -190,6 +195,11 @@ body {
   letter-spacing: 0.05em;
   display: block;
   font-weight: 700;
+}
+.hero-title br {
+  display: block;
+  content: '';
+  margin-top: 0.2rem;
 }
 [data-theme="dark"] .hero-title {
   color: var(--gold-light);
@@ -227,7 +237,7 @@ body {
   max-width: 100%;
   position: relative;
 }
-.hero-title br { display: inline; }
+
 [data-theme="dark"] .hero-card {
   border-color: var(--gold-light);
 }
@@ -1653,7 +1663,7 @@ body {
 <div class="container">
 
 <header class="hero">
-  <div class="hero-banner">TAINAN BILINGUAL CAMP</div>
+  <div class="hero-banner-wrap"><div class="hero-banner">TAINAN BILINGUAL CAMP</div></div>
   <div class="hero-card">
     <h1 class="hero-title">
       <span class="crown">♛</span>
