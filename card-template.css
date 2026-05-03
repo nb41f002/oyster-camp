@@ -1,0 +1,678 @@
+/* ============================================================
+   識別證範本 — Camp ID Card
+   10 × 15 cm 直式 + 3mm 出血（出血後尺寸 10.6 × 15.6 cm）
+   ============================================================ */
+
+@import url('assets/colors_and_type.css');
+
+/* ---- 物理尺寸（@ 96 dpi: 1cm = 37.795px）----
+   100mm × 150mm 安全範圍
+   106mm × 156mm 含出血（3mm 出血 + 3mm 出血）
+   為了畫面清晰，畫面上以 mm 為單位：使用 print css 也能對齊
+*/
+:root {
+  --card-w:   100mm;
+  --card-h:   150mm;
+  --bleed:    3mm;
+  --card-w-bleed: 106mm;
+  --card-h-bleed: 156mm;
+  --safe-pad: 6mm; /* 安全邊距，距裁切線 6mm */
+}
+
+/* ============= 卡片本體 ============= */
+.id-card {
+  position: relative;
+  width: var(--card-w-bleed);
+  height: var(--card-h-bleed);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  overflow: hidden;
+  box-sizing: border-box;
+  /* 螢幕預覽用陰影 */
+  box-shadow: 0 8px 32px rgba(47, 27, 12, 0.18);
+  border-radius: 4mm; /* 螢幕預覽用，列印不會出現 */
+}
+
+/* 列印時不要圓角 + 不要陰影 */
+@media print {
+  .id-card {
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* ============= 出血層 / 安全區 ============= */
+/* 出血邊：把背景延伸到出血區 */
+.id-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(184, 134, 11, 0.10), transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(46, 125, 60, 0.10), transparent 45%),
+    var(--bg);
+  z-index: 0;
+}
+
+/* 安全區內容容器 */
+.id-card__safe {
+  position: absolute;
+  inset: var(--bleed);
+  /* 100×150 mm 安全區 */
+  border: 2.5px solid var(--ink);
+  border-radius: 3mm;
+  background: var(--panel-bg);
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+  overflow: hidden;
+}
+
+/* ============= 頂部：班別色帶 ============= */
+.id-card__band {
+  position: relative;
+  height: 22mm;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5mm;
+  background: var(--day-main);
+  color: #FFFBEA;
+  border-bottom: 2.5px solid var(--ink);
+}
+.id-card__band-cn {
+  font-family: var(--font-display);
+  font-size: 22pt;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  text-shadow: 1.5px 1.5px 0 var(--ink);
+}
+.id-card__band-en {
+  font-family: var(--font-latin);
+  font-size: 9.5pt;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-top: 1.5mm;
+  opacity: 0.95;
+}
+.id-card__band-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5mm;
+}
+.id-card__band-emoji {
+  font-size: 18pt;
+  filter: drop-shadow(1.5px 1.5px 0 var(--ink));
+}
+
+/* 校徽角章 */
+.id-card__crown {
+  position: absolute;
+  top: -3mm;
+  right: 5mm;
+  font-size: 14pt;
+  color: var(--gold-light);
+  text-shadow: 1.5px 1.5px 0 var(--ink);
+  animation: cardSparkle 2.4s ease-in-out infinite;
+}
+@keyframes cardSparkle {
+  0%, 100% { transform: scale(1) rotate(-3deg); }
+  50%      { transform: scale(1.12) rotate(3deg); }
+}
+
+/* ============= 中段：照片/吉祥物區 ============= */
+.id-card__hero {
+  position: relative;
+  flex: 0 0 50mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      transparent 0 4mm,
+      rgba(47, 27, 12, 0.025) 4mm 8mm
+    ),
+    var(--day-light);
+  border-bottom: 2.5px solid var(--ink);
+}
+
+/* 主吉祥物 — 小蚵人 */
+.id-card__mascot {
+  width: 38mm;
+  height: 38mm;
+  object-fit: contain;
+  filter: drop-shadow(2px 2px 0 var(--ink));
+  z-index: 2;
+}
+
+/* 角色 NPC（依梯次/班別放在角落） */
+.id-card__npc {
+  position: absolute;
+  bottom: 0;
+  width: 22mm;
+  height: 22mm;
+  object-fit: contain;
+  filter: drop-shadow(1.5px 1.5px 0 var(--ink));
+  z-index: 1;
+  pointer-events: none;
+}
+.id-card__npc--left  { left: 2mm; }
+.id-card__npc--right { right: 2mm; }
+
+/* 勇者徽章 — 「綠竹筷勇者」貼紙 */
+.id-card__hero-badge {
+  position: absolute;
+  top: 2mm;
+  left: 2mm;
+  background: var(--gold);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 7pt;
+  font-weight: 700;
+  padding: 1mm 2.5mm;
+  border: 1.5px solid var(--ink);
+  border-radius: 1.5mm;
+  box-shadow: 1.5px 1.5px 0 var(--ink);
+  transform: rotate(-6deg);
+  white-space: nowrap;
+  z-index: 3;
+}
+.id-card__hero-badge-en {
+  display: block;
+  font-family: var(--font-latin);
+  font-size: 5pt;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-top: 0.3mm;
+  opacity: 0.85;
+}
+
+/* ============= 名字區 ============= */
+.id-card__name-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4mm 5mm 3mm;
+  text-align: center;
+  background: var(--panel-bg);
+  position: relative;
+}
+
+.id-card__name-label {
+  font-family: var(--font-latin);
+  font-size: 8pt;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--leaf);
+  margin-bottom: 2mm;
+}
+.id-card__name-label::before { content: '✦ '; color: var(--gold); }
+.id-card__name-label::after  { content: ' ✦'; color: var(--gold); }
+
+.id-card__name-cn {
+  font-family: var(--font-display);
+  font-size: 34pt;
+  font-weight: 700;
+  line-height: 1.0;
+  color: var(--ink);
+  letter-spacing: 0.08em;
+  margin-bottom: 2mm;
+  /* 防止過長名字爆框：4 字以上自動縮小 */
+  max-width: 100%;
+}
+.id-card__name-cn.is-long {
+  font-size: 26pt;
+}
+.id-card__name-cn.is-very-long {
+  font-size: 21pt;
+}
+
+.id-card__name-en {
+  font-family: var(--font-latin);
+  font-size: 15pt;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--ink-light);
+  line-height: 1.1;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+/* ============= 底部資訊列 ============= */
+.id-card__footer {
+  display: flex;
+  align-items: stretch;
+  border-top: 2.5px solid var(--ink);
+  background: var(--bg-paper);
+  height: 28mm;
+}
+
+.id-card__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 3mm 4mm;
+  gap: 1.8mm;
+  font-size: 9pt;
+}
+
+.id-card__info-row {
+  display: flex;
+  align-items: baseline;
+  gap: 2mm;
+  line-height: 1.2;
+}
+.id-card__info-key {
+  font-family: var(--font-latin);
+  font-size: 7pt;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--leaf);
+  flex-shrink: 0;
+  min-width: 14mm;
+}
+.id-card__info-val {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+  font-size: 10pt;
+  min-width: 0;
+  word-break: break-word;
+}
+
+/* QR Code 區 */
+.id-card__qr {
+  flex: 0 0 28mm;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-left: 2px solid var(--ink);
+  background: #FFFBEA;
+  padding: 2mm;
+  gap: 1mm;
+}
+.id-card__qr canvas,
+.id-card__qr img,
+.id-card__qr svg {
+  width: 20mm;
+  height: 20mm;
+  display: block;
+}
+.id-card__qr-label {
+  font-family: var(--font-latin);
+  font-size: 6pt;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--ink-muted);
+  text-align: center;
+  line-height: 1.1;
+}
+
+/* ============= 班別主題色 ============= */
+/* 鮮蚵勇者團（中低年級）— 用 day3 leaf-green，呼應「小蚵人」海洋感 */
+.id-card[data-team="oyster"] {
+  --day-main:   var(--day3-main);
+  --day-light:  var(--day3-light);
+  --day-accent: var(--day3-accent);
+  --day-text:   var(--day3-text);
+}
+/* 竹筍勇者團（高年級）— 用 day1 fire-red，「武器」感 */
+.id-card[data-team="bamboo"] {
+  --day-main:   var(--day1-main);
+  --day-light:  var(--day1-light);
+  --day-accent: var(--day1-accent);
+  --day-text:   var(--day1-text);
+}
+/* 老師 — 用 day4 violet，「說書人」紫 */
+.id-card[data-team="teacher"] {
+  --day-main:   var(--day4-main);
+  --day-light:  var(--day4-light);
+  --day-accent: var(--day4-accent);
+  --day-text:   var(--day4-text);
+}
+
+/* ============= 老師 NPC 角色卡 — 完整版 ============= */
+/* 老師卡的版面結構不同：頂帶 + 大頭像 + 姓名 + 角色設定+戲服 + 底部 */
+
+/* 老師卡校名角章 — 右上角斜貼紙 */
+.id-card__school-stamp {
+  position: absolute;
+  top: 4mm;
+  right: 3mm;
+  transform: rotate(6deg);
+  background: #FFFBEA;
+  border: 2px solid var(--ink);
+  padding: 1.2mm 2.5mm;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 7pt;
+  color: var(--ink);
+  box-shadow: 1.5px 1.5px 0 var(--ink);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.id-card__school-stamp .school-stamp-emoji {
+  display: none;
+}
+.id-card__school-stamp .school-stamp-cn {
+  font-size: 7pt;
+}
+.id-card__school-stamp .school-stamp-date {
+  font-family: var(--font-latin);
+  font-size: 5.5pt;
+  color: var(--gold);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+/* 不同梯次配色 */
+.id-card[data-session="longgang"] .id-card__school-stamp {
+  background: var(--day1-light);
+  color: var(--day1-text);
+}
+.id-card[data-session="baoxi"] .id-card__school-stamp {
+  background: var(--day2-light);
+  color: var(--day2-text);
+}
+
+.id-card--npc .id-card__band--npc {
+  background: var(--day4-main);
+  height: 18mm;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.id-card--npc .id-card__band--npc .id-card__band-cn {
+  font-size: 20pt;
+  display: flex;
+  align-items: center;
+  gap: 1mm;
+}
+.id-card--npc .id-card__band--npc .id-card__band-cn .npc-emoji {
+  font-size: 21pt;
+  filter: drop-shadow(1.5px 1.5px 0 var(--ink));
+}
+.id-card--npc .id-card__band--npc .id-card__band-en {
+  font-size: 10pt;
+}
+.id-card--npc .id-card__band--npc .id-card__band-left {
+  align-items: center;
+  text-align: center;
+}
+
+/* 不同 NPC 的色帶配色 */
+.id-card[data-npc="guildMaster"] .id-card__band--npc {
+  background: linear-gradient(135deg, #B8860B 0%, #DAA520 100%);
+}
+.id-card[data-npc="goldenSpoon"] .id-card__band--npc {
+  background: linear-gradient(135deg, #B8860B 0%, #8B6914 100%);
+}
+.id-card[data-npc="marketExpert"] .id-card__band--npc {
+  background: linear-gradient(135deg, #2E7D3C 0%, #1B5E20 100%);
+}
+.id-card[data-npc="masterChef"] .id-card__band--npc {
+  background: linear-gradient(135deg, #C73E3A 0%, #8B2414 100%);
+}
+.id-card[data-npc="orderJudge"] .id-card__band--npc {
+  background: linear-gradient(135deg, #5A3F28 0%, #2F1B0C 100%);
+}
+
+/* NPC 大頭像區 */
+.id-card__npc-portrait {
+  position: relative;
+  flex: 0 0 44mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    repeating-linear-gradient(
+      45deg, transparent 0 4mm,
+      rgba(47, 27, 12, 0.03) 4mm 8mm),
+    var(--bg-paper);
+  border-bottom: 2.5px solid var(--ink);
+  overflow: hidden;
+}
+.id-card__npc-portrait img {
+  width: 38mm;
+  height: 38mm;
+  object-fit: contain;
+  filter: drop-shadow(2.5px 2.5px 0 var(--ink));
+  z-index: 2;
+  position: relative;
+}
+.id-card__npc-portrait .npc-aura {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at center, var(--npc-aura-color, rgba(184,134,11,0.4)) 0%,
+                    transparent 60%);
+  z-index: 1;
+  animation: npcAura 3.5s ease-in-out infinite;
+}
+@keyframes npcAura {
+  0%, 100% { opacity: 0.65; transform: scale(1); }
+  50%      { opacity: 0.85; transform: scale(1.05); }
+}
+
+/* NPC 各自光暈色 */
+.id-card[data-npc="guildMaster"] .npc-aura  { --npc-aura-color: rgba(218, 165, 32, 0.5); }
+.id-card[data-npc="goldenSpoon"] .npc-aura  { --npc-aura-color: rgba(255, 215, 0, 0.55); }
+.id-card[data-npc="marketExpert"] .npc-aura { --npc-aura-color: rgba(76, 175, 80, 0.45); }
+.id-card[data-npc="masterChef"] .npc-aura   { --npc-aura-color: rgba(199, 62, 58, 0.45); }
+.id-card[data-npc="orderJudge"] .npc-aura   { --npc-aura-color: rgba(140, 110, 80, 0.45); }
+
+/* 老師姓名區（比學生卡緊湊一些） */
+.id-card__name-block--npc {
+  flex: 0 0 22mm;
+  padding: 3mm 4mm 2mm;
+  border-bottom: 2px dashed var(--ink-muted);
+}
+.id-card__name-block--npc .id-card__name-cn {
+  font-size: 26pt;
+  margin-bottom: 1mm;
+}
+.id-card__name-block--npc .id-card__name-cn.is-long { font-size: 21pt; }
+.id-card__name-block--npc .id-card__name-cn.is-very-long { font-size: 17pt; }
+.id-card__name-block--npc .id-card__name-en { font-size: 11.5pt; }
+
+/* 角色設定 — 遊戲角色卡風格的描述框 */
+.id-card__lore {
+  flex: 1;
+  padding: 3mm 4mm;
+  background:
+    repeating-linear-gradient(
+      90deg, transparent 0 6mm,
+      rgba(47, 27, 12, 0.025) 6mm 6.4mm),
+    var(--bg-paper);
+  display: flex;
+  flex-direction: column;
+  gap: 2mm;
+  overflow: hidden;
+  border-top: 2px dashed var(--ink-muted);
+}
+.id-card__lore .lore-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 1.5px solid var(--ink);
+  padding-bottom: 1mm;
+  margin-bottom: 0.5mm;
+}
+.id-card__lore .lore-title-cn {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 10.5pt;
+  color: var(--leaf-deep);
+}
+.id-card__lore .lore-title-en {
+  font-family: var(--font-latin);
+  font-size: 7pt;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+}
+.id-card__lore .lore-body {
+  font-family: var(--font-display);
+  font-size: 10.5pt;
+  line-height: 1.55;
+  color: var(--ink);
+  margin: 0;
+  font-weight: 500;
+  text-wrap: pretty;
+  text-align: left;
+}
+.id-card__lore .lore-note {
+  font-family: var(--font-display);
+  font-size: 9pt;
+  font-weight: 700;
+  color: var(--danger);
+  background: rgba(199, 62, 58, 0.08);
+  border-left: 2.5px solid var(--danger);
+  padding: 1.2mm 2mm;
+  margin-top: 0.5mm;
+  border-radius: 0 3px 3px 0;
+}
+
+/* 老師卡頁腳調整 */
+.id-card--npc .id-card__footer {
+  height: 22mm;
+}
+.id-card--npc .id-card__footer .id-card__info {
+  padding: 2mm 3mm;
+  gap: 1mm;
+}
+.id-card--npc .id-card__footer .id-card__info-val {
+  font-size: 9pt;
+}
+.id-card--npc .id-card__qr {
+  flex-basis: 24mm;
+  padding: 1.5mm;
+  gap: 0.5mm;
+}
+.id-card--npc .id-card__qr canvas,
+.id-card--npc .id-card__qr img,
+.id-card--npc .id-card__qr svg {
+  width: 15mm;
+  height: 15mm;
+}
+.id-card--npc .id-card__qr-label {
+  font-size: 5pt;
+  letter-spacing: 0.1em;
+}
+
+/* ============= 裁切標記 ============= */
+.crop-marks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  display: none; /* 預設關閉，可開啟 */
+}
+.crop-marks.visible { display: block; }
+.crop-marks line {
+  stroke: var(--ink);
+  stroke-width: 0.3mm;
+}
+
+/* ============= A4 排版（多卡列印）============= */
+/* A4 = 210 × 297 mm；扣掉邊距 10mm，可放 2×2 = 4 張 (2 cols × 2 rows) 含 5mm 間距
+   實際算: (210 - 10*2 - 5) / 2 = 92.5 < 106... 需要橫放
+   橫放 A4 = 297 × 210 mm；(297 - 10*2 - 5) / 2 = 136 > 106 ✓
+   每頁 2 列 × 2 排 = 4 張；高度 (210 - 10*2 - 5) / 2 = 92.5 < 156 ✗
+   改：直放 A4，1 列 × 2 排 = 2 張（每頁 2 張），(297 - 10*2 - 5)/2 = 136 < 156 ✗
+   改：直放 A4 一頁 2 張橫排，(210-20-5)/2=92.5<106 ✗
+   結論：A4 一頁只放 1 張（含出血是 106×156，A4 是 210×297，1 張綽綽有餘）
+
+   要做 2-up 必須用 A3 或 A4 橫放疊放方式：
+   A4 = 210×297，放 2 張並排不可能（合計 ≥ 212）
+   A4 直放疊兩張：106 + 156 + 156 = 318 > 297 也不行
+   A4 直放 1 張 OK；A3 (297×420) 放 4 張 OK
+*/
+
+/* 列印頁設定 — 每張卡片一頁 */
+.print-page {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 0;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  page-break-after: always;
+  page-break-inside: avoid;
+  break-after: page;
+  break-inside: avoid;
+}
+.print-page:last-child {
+  page-break-after: auto;
+  break-after: auto;
+}
+
+/* A3 4-up 排版 */
+.print-page--a3 {
+  width: 297mm;
+  min-height: 420mm;
+  padding: 12mm;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 6mm;
+  place-items: center;
+}
+
+/* A4 2-up（卡片橫向、縮小到 80mm × 120mm 列印用，不建議但可選）*/
+.print-page--compact {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 12mm;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8mm;
+  place-items: center;
+}
+.print-page--compact .id-card {
+  --card-w-bleed: 86mm;
+  --card-h-bleed: 130mm;
+}
+.print-page--compact .id-card__band { height: 18mm; }
+.print-page--compact .id-card__hero { flex-basis: 42mm; }
+.print-page--compact .id-card__footer { height: 24mm; }
+.print-page--compact .id-card__name-cn { font-size: 22pt; }
+.print-page--compact .id-card__mascot { width: 32mm; height: 32mm; }
+
+/* @page 規則 */
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+@page a3 {
+  size: A3 portrait;
+  margin: 0;
+}
+.print-page--a3 { page: a3; }
+
+/* 列印時隱藏 UI */
+@media print {
+  body { background: #fff !important; }
+  .no-print { display: none !important; }
+}

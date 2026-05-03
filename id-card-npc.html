@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<title>老師 NPC 識別證 · Teacher Cards · 小蚵人雙語營隊</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="card-template.css">
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="npc-data.js"></script>
+
+<style>
+.bake-hub {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 28px;
+}
+@media (max-width: 800px) { .bake-hub { grid-template-columns: 1fr; } }
+
+.bake-card {
+  background: var(--panel-bg);
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  padding: 20px 22px;
+  box-shadow: 4px 4px 0 var(--ink);
+  position: relative;
+  overflow: hidden;
+}
+.bake-card--longgang { background: var(--day1-light); }
+.bake-card--baoxi    { background: var(--day2-light); }
+.bake-card-emoji {
+  font-size: 1.8rem;
+  margin-bottom: 4px;
+  filter: drop-shadow(2px 2px 0 var(--ink));
+}
+.bake-card-title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+.bake-card-meta {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: var(--ink-light);
+  margin: 0 0 12px;
+}
+.bake-card-meta strong { color: var(--leaf-deep); }
+.bake-card .btn { width: 100%; }
+
+.single-card-zone {
+  background: var(--panel-bg);
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  padding: 20px 22px;
+  box-shadow: 4px 4px 0 var(--ink);
+  margin-bottom: 28px;
+}
+.single-card-zone h3 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: var(--leaf-deep);
+}
+.single-card-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+.single-card-select {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 10px 14px;
+  border: 2.5px solid var(--ink);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  width: 100%;
+}
+.single-card-select:focus { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+.rebake-zone {
+  background: rgba(199, 62, 58, 0.04);
+  border: 2.5px dashed var(--danger);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 28px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.rebake-zone-text {
+  flex: 1;
+  min-width: 200px;
+}
+.rebake-zone-text strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--danger);
+  display: block;
+  margin-bottom: 2px;
+}
+.rebake-zone-text span {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  color: var(--ink-light);
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  justify-items: center;
+}
+.preview-cell {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: zoom-in;
+  transition: transform 0.18s;
+}
+.preview-cell:hover {
+  transform: translateY(-3px);
+}
+.preview-cell:hover .id-card {
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.18));
+}
+.preview-cell .id-card {
+  transform: scale(0.55);
+  transform-origin: top center;
+  margin: 0 auto -260px; /* 156mm * 0.55 ≈ 86mm; collapse rest */
+}
+.preview-cell-label {
+  margin-top: 8px;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Lightbox 燈箱 */
+.lightbox {
+  position: fixed; inset: 0;
+  background: rgba(20, 14, 8, 0.85);
+  z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  cursor: zoom-out;
+  backdrop-filter: blur(4px);
+  overflow: auto;
+  animation: lb-fade 0.18s ease-out;
+}
+@keyframes lb-fade { from { opacity: 0; } to { opacity: 1; } }
+.lightbox-stage {
+  display: flex; flex-direction: column; align-items: center; gap: 24px;
+  pointer-events: none;
+  margin: auto;
+}
+.lightbox-stage .id-card {
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  pointer-events: auto;
+  flex-shrink: 0;
+}
+.lightbox-cap {
+  pointer-events: auto;
+  color: #FFFBEA;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  background: rgba(0,0,0,0.4);
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255,251,234,0.3);
+}
+.lightbox-close {
+  position: fixed; top: 20px; right: 24px;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(255,251,234,0.15);
+  color: #FFFBEA;
+  border: 2px solid rgba(255,251,234,0.4);
+  font-size: 1.4rem; font-weight: 700;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10000;
+}
+.lightbox-close:hover { background: rgba(255,251,234,0.3); }
+
+#bake-progress {
+  margin-top: 8px;
+  font-family: var(--font-display);
+  color: var(--ink-light);
+  font-size: 0.88rem;
+}
+#bake-progress.bake-progress--done { color: var(--leaf-deep); font-weight: 700; }
+
+.bake-card .btn[data-state="baking"] {
+  background: var(--ink-light);
+  color: #fff;
+  pointer-events: none;
+  opacity: 0.92;
+  position: relative;
+  overflow: hidden;
+}
+.bake-card .btn[data-state="baking"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  animation: bakeShimmer 1.6s infinite;
+}
+@keyframes bakeShimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.bake-card .btn[data-state="error"] {
+  background: var(--danger);
+  color: #fff;
+  pointer-events: none;
+}
+
+.preview-section-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--leaf-deep);
+  margin: 24px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 2.5px dashed var(--ink-muted);
+}
+</style>
+</head>
+<body>
+
+<div class="workbench">
+  <div class="wb-header">
+    <div>
+      <h1 class="wb-title">📜 老師 NPC 識別證
+        <span class="wb-title-en">Teacher NPC Cards</span></h1>
+      <p class="wb-subtitle">12 位主講老師的角色卡 · 預先烤好 · 即點即下載</p>
+    </div>
+    <a href="id-card-forge.html" class="wb-back-link">← 回主頁</a>
+  </div>
+
+  <!-- 兩個批次的下載入口 -->
+  <div class="bake-hub">
+    <div class="bake-card bake-card--longgang">
+      <div class="bake-card-emoji">🏫</div>
+      <h2 class="bake-card-title">龍崗國小 · 7/6 – 7/10</h2>
+      <p class="bake-card-meta"><strong id="lg-count">— 張識別證</strong> · A4 橫式 2-up</p>
+      <a id="lg-download" href="#" download="老師識別證_龍崗國小.pdf"
+         class="btn btn--primary btn--lg" data-state="baking">🔥 準備烘烤…</a>
+    </div>
+
+    <div class="bake-card bake-card--baoxi">
+      <div class="bake-card-emoji">🏯</div>
+      <h2 class="bake-card-title">保西國小 · 8/17 – 8/21</h2>
+      <p class="bake-card-meta"><strong id="bx-count">— 張識別證</strong> · A4 橫式 2-up</p>
+      <a id="bx-download" href="#" download="老師識別證_保西國小.pdf"
+         class="btn btn--primary btn--lg" data-state="baking">🔥 準備烘烤…</a>
+    </div>
+  </div>
+
+  <!-- 單張下載 -->
+  <div class="single-card-zone">
+    <h3>🔍 單張下載 · Single Card（按職業排序）</h3>
+    <div class="single-card-form">
+      <select id="single-select" class="single-card-select">
+        <!-- options injected by React -->
+      </select>
+      <button id="single-download-btn" class="btn btn--primary btn--lg">📄 下載這張</button>
+    </div>
+    <p style="font-family: var(--font-display); font-size: 0.82rem; color: var(--ink-muted); margin: 8px 0 0;">
+      💡 補發、補印單張用。同一位老師可能有龍崗 + 保西兩張。
+    </p>
+  </div>
+
+  <!-- 重新烤 -->
+  <div class="rebake-zone">
+    <div class="rebake-zone-text">
+      <strong>🔥 重新烤 PDF</strong>
+      <span>頁面載入時已自動烘烤兩個總檔。若你修改了角色設定 / QR 連結 / 老師名單，按此重新生成。需 30~60 秒。</span>
+    </div>
+    <button id="rebake-btn" class="btn btn--lg">🔥 重新烤兩個總檔</button>
+    <span id="bake-progress"></span>
+  </div>
+
+  <!-- 預覽全部 15 張 -->
+  <h2 class="preview-section-title">👁 預覽全部 · Preview All</h2>
+  <div id="teachers-preview"></div>
+</div>
+
+<div class="print-canvas" id="export-canvas"></div>
+
+<script type="text/babel" src="card-template.jsx"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useMemo } = React;
+
+// ============== 資料展開：每位老師 × 梯次 → 一張卡 ==============
+function buildTeacherCards() {
+  const cards = [];
+  TEACHER_ASSIGNMENTS.forEach((t) => {
+    t.sessions.forEach((session) => {
+      cards.push({
+        nameCn: t.name,
+        nameEn: t.en,
+        team: t.team,
+        role: 'teacher',
+        npc: t.npc,
+        session,
+        note: t.note || '',
+        contact: '',
+        qrUrl: 'https://nb41f002.github.io/oyster-camp/',
+      });
+    });
+  });
+  return cards;
+}
+
+// 職業排序（公會長 → 御廚 → 採購 → 總舖師 → 判官）+ 同職業內按校區再按姓名
+const NPC_ORDER = ['guildMaster', 'goldenSpoon', 'marketExpert', 'masterChef', 'orderJudge'];
+const SESSION_ORDER = ['longgang', 'baoxi'];
+
+function sortByJobThenSession(cards) {
+  return [...cards].sort((a, b) => {
+    const ai = NPC_ORDER.indexOf(a.npc);
+    const bi = NPC_ORDER.indexOf(b.npc);
+    if (ai !== bi) return ai - bi;
+    const si = SESSION_ORDER.indexOf(a.session);
+    const sj = SESSION_ORDER.indexOf(b.session);
+    if (si !== sj) return si - sj;
+    return a.nameCn.localeCompare(b.nameCn, 'zh-Hant');
+  });
+}
+
+// ============== PDF 烤製函式 ==============
+async function renderCardToCanvas(card) {
+  const exportRoot = document.getElementById('export-canvas');
+  const mount = document.createElement('div');
+  mount.style.cssText = 'background:#fff; display:inline-block;';
+  exportRoot.appendChild(mount);
+  const root = ReactDOM.createRoot(mount);
+  await new Promise(resolve => {
+    root.render(<IDCard data={card} />);
+    setTimeout(resolve, 450);
+  });
+  const cardEl = mount.querySelector('.id-card');
+  const canvas = await html2canvas(cardEl, {
+    scale: 3.5, backgroundColor: '#fff', useCORS: true, logging: false,
+  });
+  setTimeout(() => { try { root.unmount(); } catch(e){} mount.remove(); }, 50);
+  return canvas;
+}
+
+function drawCropMarks(pdf, x, y, cardW, cardH) {
+  pdf.setDrawColor(47, 27, 12);
+  pdf.setLineWidth(0.2);
+  const m = 4, b = 3;
+  for (const cx of [x + b, x + cardW - b]) {
+    pdf.line(cx, y - m - b, cx, y - b);
+    pdf.line(cx, y + cardH + b, cx, y + cardH + b + m);
+  }
+  for (const cy of [y + b, y + cardH - b]) {
+    pdf.line(x - m - b, cy, x - b, cy);
+    pdf.line(x + cardW + b, cy, x + cardW + b + m, cy);
+  }
+}
+
+// 烤一個批次（按學校）：A4 橫式 2-up
+async function bakeBatch(cards, sessionLabel, onProgress) {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
+  const pageW = 297, pageH = 210;
+  const cardW = 106, cardH = 156;
+  const gap = 8;
+  const totalW = cardW * 2 + gap;
+  const startX = (pageW - totalW) / 2;
+  const y = (pageH - cardH) / 2;
+
+  for (let i = 0; i < cards.length; i++) {
+    onProgress?.(i + 1, cards.length);
+    const slotIdx = i % 2;
+    if (i > 0 && slotIdx === 0) pdf.addPage();
+    const canvas = await renderCardToCanvas(cards[i]);
+    const x = startX + slotIdx * (cardW + gap);
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', x, y, cardW, cardH);
+    drawCropMarks(pdf, x, y, cardW, cardH);
+    pdf.setFontSize(7);
+    pdf.setTextColor(120);
+    pdf.text(
+      `${cards[i].nameCn} · ${NPC_ROLES[cards[i].npc].cnName}`,
+      x, y + cardH + 8
+    );
+  }
+  // 頁尾
+  const totalPages = pdf.internal.getNumberOfPages();
+  for (let p = 1; p <= totalPages; p++) {
+    pdf.setPage(p);
+    pdf.setFontSize(7);
+    pdf.setTextColor(150);
+    pdf.text(
+      `小蚵人雙語營隊 · ${sessionLabel} · 第 ${p} / ${totalPages} 頁 · 含 3mm 出血 + 裁切線`,
+      10, pageH - 6
+    );
+  }
+  return pdf;
+}
+
+// 烤單張：A4 直式置中
+async function bakeSingle(card) {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+  const cardW = 106, cardH = 156;
+  const x = (210 - cardW) / 2;
+  const y = (297 - cardH) / 2;
+  const canvas = await renderCardToCanvas(card);
+  pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, y, cardW, cardH);
+  drawCropMarks(pdf, x, y, cardW, cardH);
+  pdf.setFontSize(8);
+  pdf.setTextColor(120);
+  pdf.text(
+    `${card.nameCn} · ${NPC_ROLES[card.npc].cnName} · ${card.session==='longgang'?'龍崗':'保西'}`,
+    10, 290
+  );
+  return pdf;
+}
+
+// Expose for tooling — used by build script to pre-bake PDFs
+window.__bakeBatch = bakeBatch;
+window.__buildTeacherCards = buildTeacherCards;
+window.__sortByJobThenSession = sortByJobThenSession;
+window.__NPC_ROLES = NPC_ROLES;
+
+// ============== 主元件 ==============
+function App() {
+  const allCards = useMemo(() => sortByJobThenSession(buildTeacherCards()), []);
+  const longgangCards = useMemo(() => allCards.filter(c => c.session === 'longgang'), [allCards]);
+  const baoxiCards    = useMemo(() => allCards.filter(c => c.session === 'baoxi'), [allCards]);
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const [baking, setBaking] = useState(false);
+  const [zoomCard, setZoomCard] = useState(null);
+  React.useEffect(() => {
+    if (!zoomCard) return;
+    const onKey = (e) => { if (e.key === 'Escape') setZoomCard(null); };
+    window.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [zoomCard]);
+
+  // 注入卡片總數到 bake-card meta + 初始烘烤按鈕文字
+  useEffect(() => {
+    const lgCount = document.getElementById('lg-count');
+    const bxCount = document.getElementById('bx-count');
+    const lgBtn = document.getElementById('lg-download');
+    const bxBtn = document.getElementById('bx-download');
+    if (lgCount) lgCount.textContent = `${longgangCards.length} 張識別證`;
+    if (bxCount) bxCount.textContent = `${baoxiCards.length} 張識別證`;
+    if (lgBtn && lgBtn.dataset.state === 'baking' && lgBtn.textContent.includes('準備')) {
+      lgBtn.textContent = `🔥 烘烤中… 0/${longgangCards.length}`;
+    }
+    if (bxBtn && bxBtn.dataset.state === 'baking' && bxBtn.textContent.includes('準備')) {
+      bxBtn.textContent = `🔥 烘烤中… 0/${baoxiCards.length}`;
+    }
+  }, [longgangCards.length, baoxiCards.length]);
+
+  // 注入單張下拉選單到 #single-select
+  useEffect(() => {
+    const sel = document.getElementById('single-select');
+    sel.innerHTML = '';
+    allCards.forEach((c, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      const role = NPC_ROLES[c.npc];
+      const sess = c.session === 'longgang' ? '龍崗' : '保西';
+      opt.textContent = `${role.emoji} ${role.cnName} — ${c.nameCn}（${sess}）`;
+      sel.appendChild(opt);
+    });
+    sel.value = selectedIdx;
+    sel.onchange = (e) => setSelectedIdx(parseInt(e.target.value, 10));
+  }, [allCards]);
+
+  // 單張下載
+  useEffect(() => {
+    const btn = document.getElementById('single-download-btn');
+    btn.onclick = async () => {
+      btn.disabled = true;
+      btn.textContent = '產生中…';
+      try {
+        const card = allCards[selectedIdx];
+        const pdf = await bakeSingle(card);
+        const sess = card.session === 'longgang' ? '龍崗' : '保西';
+        const role = NPC_ROLES[card.npc].cnName;
+        pdf.save(`老師識別證_${card.nameCn}_${role}_${sess}.pdf`);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '📄 下載這張';
+      }
+    };
+  }, [selectedIdx, allCards]);
+
+  // 自動烤兩個批次（頁面載入時背景烘烤；之後點下載即下載）
+  useEffect(() => {
+    let cancelled = false;
+    const lgBtn = document.getElementById('lg-download');
+    const bxBtn = document.getElementById('bx-download');
+
+    const setBtnReady = (btn, blobUrl, count) => {
+      if (cancelled) return;
+      btn.href = blobUrl;
+      btn.dataset.state = 'ready';
+      btn.textContent = `📦 下載總檔 PDF（${count} 張）`;
+    };
+    const setBtnError = (btn, msg) => {
+      btn.dataset.state = 'error';
+      btn.textContent = `✗ 烘烤失敗：${msg}`;
+    };
+
+    (async () => {
+      try {
+        // 龍崗
+        const lgPdf = await bakeBatch(longgangCards, '龍崗國小', (cur, tot) => {
+          if (lgBtn.dataset.state === 'baking') {
+            lgBtn.textContent = `🔥 烘烤中… ${cur}/${tot}`;
+          }
+        });
+        if (cancelled) return;
+        const lgBlob = lgPdf.output('blob');
+        const lgUrl = URL.createObjectURL(lgBlob);
+        setBtnReady(lgBtn, lgUrl, longgangCards.length);
+
+        // 保西
+        const bxPdf = await bakeBatch(baoxiCards, '保西國小', (cur, tot) => {
+          if (bxBtn.dataset.state === 'baking') {
+            bxBtn.textContent = `🔥 烘烤中… ${cur}/${tot}`;
+          }
+        });
+        if (cancelled) return;
+        const bxBlob = bxPdf.output('blob');
+        const bxUrl = URL.createObjectURL(bxBlob);
+        setBtnReady(bxBtn, bxUrl, baoxiCards.length);
+      } catch (e) {
+        console.error('Auto-bake failed:', e);
+        if (lgBtn.dataset.state === 'baking') setBtnError(lgBtn, e.message);
+        if (bxBtn.dataset.state === 'baking') setBtnError(bxBtn, e.message);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [longgangCards, baoxiCards]);
+
+  // 重新烤 — 強制重新生成兩個總檔
+  useEffect(() => {
+    const btn = document.getElementById('rebake-btn');
+    const progress = document.getElementById('bake-progress');
+    const lgBtn = document.getElementById('lg-download');
+    const bxBtn = document.getElementById('bx-download');
+    btn.onclick = async () => {
+      if (baking) return;
+      setBaking(true);
+      btn.disabled = true;
+      progress.classList.remove('bake-progress--done');
+      // 重置按鈕狀態
+      lgBtn.dataset.state = 'baking';
+      bxBtn.dataset.state = 'baking';
+      lgBtn.href = '#';
+      bxBtn.href = '#';
+      lgBtn.textContent = '🔥 烘烤中… 0/' + longgangCards.length;
+      bxBtn.textContent = '🔥 烘烤中… 0/' + baoxiCards.length;
+      try {
+        // 龍崗
+        const lgPdf = await bakeBatch(longgangCards, '龍崗國小', (cur, tot) => {
+          progress.textContent = `🔥 烤龍崗中… ${cur}/${tot}`;
+          lgBtn.textContent = `🔥 烘烤中… ${cur}/${tot}`;
+        });
+        const lgUrl = URL.createObjectURL(lgPdf.output('blob'));
+        lgBtn.href = lgUrl;
+        lgBtn.dataset.state = 'ready';
+        lgBtn.textContent = `📦 下載總檔 PDF（${longgangCards.length} 張）`;
+        // 保西
+        const bxPdf = await bakeBatch(baoxiCards, '保西國小', (cur, tot) => {
+          progress.textContent = `🔥 烤保西中… ${cur}/${tot}`;
+          bxBtn.textContent = `🔥 烘烤中… ${cur}/${tot}`;
+        });
+        const bxUrl = URL.createObjectURL(bxPdf.output('blob'));
+        bxBtn.href = bxUrl;
+        bxBtn.dataset.state = 'ready';
+        bxBtn.textContent = `📦 下載總檔 PDF（${baoxiCards.length} 張）`;
+        progress.textContent = `✓ 兩個總檔已重新生成 — 點上方按鈕下載`;
+        progress.classList.add('bake-progress--done');
+      } catch (e) {
+        progress.textContent = `✗ 失敗：${e.message}`;
+      } finally {
+        btn.disabled = false;
+        setBaking(false);
+      }
+    };
+  }, [longgangCards, baoxiCards, baking]);
+
+  // 預覽全部卡片
+  return (
+    <div>
+      <div className="preview-section-title" style={{margin:'8px 0 12px', borderBottom:'none'}}>
+        🏫 龍崗國小（{longgangCards.length} 張）
+      </div>
+      <div className="preview-grid">
+        {longgangCards.map((c, i) => (
+          <div key={`lg-${i}`} className="preview-cell" onClick={() => setZoomCard(c)}>
+            <IDCard data={c} />
+            <div className="preview-cell-label">
+              {NPC_ROLES[c.npc].emoji} {c.nameCn} · {NPC_ROLES[c.npc].cnName}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="preview-section-title" style={{marginTop:'40px'}}>
+        🏯 保西國小（{baoxiCards.length} 張）
+      </div>
+      <div className="preview-grid">
+        {baoxiCards.map((c, i) => (
+          <div key={`bx-${i}`} className="preview-cell" onClick={() => setZoomCard(c)}>
+            <IDCard data={c} />
+            <div className="preview-cell-label">
+              {NPC_ROLES[c.npc].emoji} {c.nameCn} · {NPC_ROLES[c.npc].cnName}
+            </div>
+          </div>
+        ))}
+      </div>
+      {zoomCard && ReactDOM.createPortal(
+        <div className="lightbox" onClick={() => setZoomCard(null)}>
+          <button className="lightbox-close" onClick={(e) => { e.stopPropagation(); setZoomCard(null); }} aria-label="關閉">✕</button>
+          <div className="lightbox-stage">
+            <IDCard data={zoomCard} />
+            <span className="lightbox-cap">
+              {NPC_ROLES[zoomCard.npc].emoji} {zoomCard.nameCn} · {NPC_ROLES[zoomCard.npc].cnName}
+              {zoomCard.session === 'longgang' ? ' · 龍崗' : ' · 保西'}
+              　·　點擊空白處關閉 · ESC
+            </span>
+          </div>
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('teachers-preview')).render(<App />);
+</script>
+
+</body>
+</html>

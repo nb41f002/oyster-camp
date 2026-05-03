@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<title>批量識別證 · Batch Cards · 小蚵人雙語營隊</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="card-template.css">
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="npc-data.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+.batch-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: #FFFBEA;
+}
+.batch-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px dashed var(--ink-muted);
+  font-size: 0.88rem;
+}
+.batch-list li:last-child { border-bottom: none; }
+.batch-list .badge {
+  font-family: var(--font-latin);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  margin-left: auto;
+}
+.badge-oyster  { background: var(--day3-light); color: var(--day3-text); }
+.badge-bamboo  { background: var(--day1-light); color: var(--day1-text); }
+.badge-teacher { background: var(--day4-light); color: var(--day4-text); }
+
+.template-link {
+  font-family: var(--font-latin);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--leaf);
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  background: none; border: none; padding: 0;
+}
+
+.progress {
+  margin-top: 10px;
+  background: #FFFBEA;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  height: 14px;
+  overflow: hidden;
+  position: relative;
+}
+.progress-bar {
+  background: var(--leaf);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+.progress-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-latin);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<div class="workbench">
+  <div class="wb-header">
+    <div>
+      <h1 class="wb-title">
+        ⚔️ 批量識別證
+        <span class="wb-title-en">Batch Hero Cards</span>
+      </h1>
+      <p class="wb-subtitle">上傳 Excel 名單，一鍵產生整批可印製 PDF</p>
+    </div>
+    <a href="id-card-forge.html" class="wb-back-link">← 回主頁</a>
+  </div>
+
+  <div class="wb-grid">
+    <div class="panel" id="control-panel"></div>
+    <div class="stage">
+      <div class="stage-header">
+        <h2 class="stage-header-title">📋 名單預覽 · Roster Preview</h2>
+        <span class="stage-header-meta" id="stage-meta">UPLOAD TO BEGIN</span>
+      </div>
+      <div id="cards-area" style="width:100%;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="print-canvas" id="export-canvas"></div>
+
+<script type="text/babel" src="card-template.jsx"></script>
+
+<script type="text/babel">
+const { useState, useRef, useEffect } = React;
+
+// 範例範本下載
+function downloadTemplate() {
+  const wb = XLSX.utils.book_new();
+  const data = [
+    ['中文姓名', '英文名', '班別', '梯次', '座號', '緊急聯絡', '身份'],
+    ['林宥廷', 'Ethan',     '鮮蚵勇者團', '龍崗 7/6-7/10',  '07', '0912-345-678', '勇者'],
+    ['張承恩', 'Leo',       '竹筍勇者團', '龍崗 7/6-7/10',  '15', '0923-456-789', '勇者'],
+    ['陳怡安', 'Hannah',    '鮮蚵勇者團', '保西 8/17-8/21', '03', '0934-567-890', '勇者'],
+    ['吳佩珊', 'Stella',    '說書講師團', '龍崗 7/6-7/10',  '',   '0945-678-901', '老師'],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [{wch:10},{wch:14},{wch:14},{wch:18},{wch:6},{wch:14},{wch:6}];
+  XLSX.utils.book_append_sheet(wb, ws, '識別證名單');
+  XLSX.writeFile(wb, '小蚵人營隊_識別證範本.xlsx');
+}
+
+function ControlPanel({
+  rows, onUpload, onClear, layout, setLayout,
+  defaultQR, setDefaultQR, exporting, onExportAll, progress
+}) {
+  const fileRef = useRef(null);
+  const [drag, setDrag] = useState(false);
+
+  const handleFile = (file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const wb = XLSX.read(e.target.result, { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(ws, { defval: '' });
+        onUpload(json);
+      } catch (err) {
+        alert('讀取 Excel 失敗：' + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  const counts = { oyster: 0, bamboo: 0, teacher: 0 };
+  rows.forEach(r => { counts[r.team] = (counts[r.team] || 0) + 1; });
+
+  return (
+    <div>
+      <div className="panel-section">
+        <h3 className="panel-section-title">
+          📥 上傳名單
+          <span className="panel-section-title-en">Upload Roster</span>
+        </h3>
+
+        <div
+          className={`dropzone ${drag ? 'is-drag' : ''}`}
+          onClick={() => fileRef.current?.click()}
+          onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+          onDragLeave={() => setDrag(false)}
+          onDrop={(e) => {
+            e.preventDefault(); setDrag(false);
+            handleFile(e.dataTransfer.files[0]);
+          }}
+        >
+          <div className="dropzone-icon">📂</div>
+          <p className="dropzone-title">點擊或拖入 Excel</p>
+          <p className="dropzone-hint">支援 .xlsx / .xls / .csv</p>
+          <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv"
+            onChange={(e) => handleFile(e.target.files[0])} />
+        </div>
+
+        <div style={{marginTop:10, textAlign:'center'}}>
+          <button className="template-link" onClick={downloadTemplate}>
+            ⬇ 下載 Excel 範本
+          </button>
+        </div>
+      </div>
+
+      {rows.length > 0 && (
+        <>
+          <div className="panel-section">
+            <h3 className="panel-section-title">
+              📊 統計
+              <span className="panel-section-title-en">Stats</span>
+            </h3>
+            <div className="stats">
+              <div className="stat">
+                <div className="stat-num">{rows.length}</div>
+                <div className="stat-label">Total</div>
+              </div>
+              <div className="stat">
+                <div className="stat-num" style={{color:'var(--day3-main)'}}>{counts.oyster||0}</div>
+                <div className="stat-label">🦪 Oyster</div>
+              </div>
+              <div className="stat">
+                <div className="stat-num" style={{color:'var(--day1-main)'}}>{counts.bamboo||0}</div>
+                <div className="stat-label">🎋 Bamboo</div>
+              </div>
+              <div className="stat">
+                <div className="stat-num" style={{color:'var(--day4-main)'}}>{counts.teacher||0}</div>
+                <div className="stat-label">📜 Teacher</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="panel-section">
+            <h3 className="panel-section-title">
+              🖨️ 排版
+              <span className="panel-section-title-en">Layout</span>
+            </h3>
+            <div className="segmented">
+              <label>
+                <input type="radio" name="layout" checked={layout==='single'}
+                  onChange={() => setLayout('single')} />
+                <span>A4 一頁一張</span>
+              </label>
+              <label>
+                <input type="radio" name="layout" checked={layout==='2up'}
+                  onChange={() => setLayout('2up')} />
+                <span>A4 一頁兩張</span>
+              </label>
+            </div>
+            <p style={{fontSize:'0.78rem', color:'var(--ink-muted)', marginTop:8, lineHeight:1.5}}>
+              {layout === 'single'
+                ? '📄 每頁一張識別證居中，附 3mm 出血 + 裁切線（送印刷廠用）'
+                : '📐 每頁兩張並列（縮小至 86×130mm），適合家用印表機自行裁切'}
+            </p>
+          </div>
+
+          <div className="panel-section">
+            <div className="field">
+              <label className="field-label">
+                預設 QR 連結
+                <span className="field-label-en">Default QR</span>
+              </label>
+              <input className="input" type="text" value={defaultQR}
+                onChange={(e) => setDefaultQR(e.target.value)} />
+              <p style={{fontSize:'0.75rem', color:'var(--ink-muted)', marginTop:4}}>
+                Excel 內留空者會用此連結
+              </p>
+            </div>
+          </div>
+
+          <div className="panel-section">
+            <button className="btn btn--primary btn--block btn--lg"
+              onClick={onExportAll} disabled={exporting}>
+              {exporting ? <span className="loading">產生中…</span>
+                         : <>📦 下載全部 PDF（{rows.length} 張）</>}
+            </button>
+            {exporting && progress != null && (
+              <div className="progress">
+                <div className="progress-bar" style={{width: `${progress}%`}}></div>
+                <div className="progress-text">{Math.round(progress)}%</div>
+              </div>
+            )}
+            <button className="btn btn--block" onClick={onClear} style={{marginTop:8}}>
+              🗑️ 清空名單
+            </button>
+          </div>
+
+          <div className="panel-section">
+            <h3 className="panel-section-title">
+              👥 名單明細
+              <span className="panel-section-title-en">Roster</span>
+            </h3>
+            <ul className="batch-list">
+              {rows.map((r, i) => (
+                <li key={i}>
+                  <span style={{fontWeight:700}}>{r.nameCn || '—'}</span>
+                  <span style={{color:'var(--ink-muted)', fontSize:'0.82rem'}}>
+                    {r.nameEn}
+                  </span>
+                  <span className={`badge badge-${r.team}`}>
+                    {r.team === 'oyster' ? '鮮蚵' : r.team === 'bamboo' ? '竹筍' : '講師'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
+      )}
+
+      <div className="panel-section">
+        <div className="notice">
+          <div className="notice-title">📋 EXCEL 欄位</div>
+          中文姓名 · 英文名 · 班別 · 梯次 · 座號 · 緊急聯絡 · 身份
+          <br/>
+          <span style={{fontSize:'0.82rem', color:'var(--ink-muted)'}}>
+            欄位順序不重要、可缺；班別寫「鮮蚵 / 竹筍 / 講師」即可。
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CardsPreview({ rows }) {
+  if (rows.length === 0) {
+    return (
+      <div className="empty-state">
+        <div className="empty-state-icon">🦪</div>
+        <p className="empty-state-title">名單空空，等待勇者集結</p>
+        <p className="empty-state-text">
+          上傳 Excel 名單即可批量產生識別證。<br/>
+          沒有檔案？點左側「下載範本」開始填。
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="cards-grid">
+      {rows.map((r, i) => (
+        <div className="card-frame" key={i}>
+          <span className="card-frame__num">#{String(i + 1).padStart(3, '0')} · {r.nameCn}</span>
+          <IDCard data={r} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function App() {
+  const [rows, setRows] = useState([]);
+  const [layout, setLayout] = useState('single');
+  const [defaultQR, setDefaultQR] = useState('https://nb41f002.github.io/oyster-camp/');
+  const [exporting, setExporting] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const meta = document.getElementById('stage-meta');
+    if (meta) meta.textContent = rows.length === 0
+      ? 'UPLOAD TO BEGIN'
+      : `${rows.length} HEROES READY`;
+  }, [rows]);
+
+  const handleUpload = (json) => {
+    const normalized = json
+      .map(r => normalizeCardData(r))
+      .filter(r => r.nameCn);  // 必須有中文姓名
+    // 套用預設 QR
+    normalized.forEach(r => { if (!r.qrUrl) r.qrUrl = defaultQR; });
+    setRows(normalized);
+  };
+
+  // 把單筆 row 渲染成 canvas（暫時的）
+  async function renderRowToCanvas(row) {
+    const exportRoot = document.getElementById('export-canvas');
+    const mount = document.createElement('div');
+    mount.style.cssText = 'background:#fff; display:inline-block;';
+    exportRoot.appendChild(mount);
+    const root = ReactDOM.createRoot(mount);
+    await new Promise(resolve => {
+      root.render(<IDCard data={row} />);
+      setTimeout(resolve, 350);
+    });
+    const cardEl = mount.querySelector('.id-card');
+    const canvas = await html2canvas(cardEl, {
+      scale: 3, backgroundColor: '#fff', useCORS: true, logging: false,
+    });
+    setTimeout(() => { try { root.unmount(); } catch(e){} mount.remove(); }, 50);
+    return canvas;
+  }
+
+  function drawCropMarks(pdf, x, y, cardW, cardH) {
+    pdf.setDrawColor(47, 27, 12);
+    pdf.setLineWidth(0.2);
+    const m = 4, b = 3;
+    for (const cx of [x + b, x + cardW - b]) {
+      pdf.line(cx, y - m - b, cx, y - b);
+      pdf.line(cx, y + cardH + b, cx, y + cardH + b + m);
+    }
+    for (const cy of [y + b, y + cardH - b]) {
+      pdf.line(x - m - b, cy, x - b, cy);
+      pdf.line(x + cardW + b, cy, x + cardW + b + m, cy);
+    }
+  }
+
+  async function handleExportAll() {
+    if (rows.length === 0) return;
+    setExporting(true);
+    setProgress(0);
+    try {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+      const total = rows.length;
+
+      if (layout === 'single') {
+        const cardW = 106, cardH = 156;
+        const x = (210 - cardW) / 2;
+        const y = (297 - cardH) / 2;
+        for (let i = 0; i < total; i++) {
+          if (i > 0) pdf.addPage();
+          const canvas = await renderRowToCanvas(rows[i]);
+          pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', x, y, cardW, cardH);
+          drawCropMarks(pdf, x, y, cardW, cardH);
+          // 頁碼 / 識別
+          pdf.setFontSize(8);
+          pdf.setTextColor(120);
+          pdf.text(`#${String(i+1).padStart(3,'0')} · ${rows[i].nameCn}`, 10, 290);
+          setProgress(((i + 1) / total) * 100);
+        }
+      } else {
+        // 2-up：A4 一頁兩張，縮到 86×130 mm，上下排
+        const cardW = 86, cardH = 130;
+        const x = (210 - cardW) / 2;
+        const yTop = 14;
+        const yBot = 297 - 14 - cardH;
+        for (let i = 0; i < total; i++) {
+          const slot = i % 2;
+          if (i > 0 && slot === 0) pdf.addPage();
+          const canvas = await renderRowToCanvas(rows[i]);
+          const y = slot === 0 ? yTop : yBot;
+          pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', x, y, cardW, cardH);
+          drawCropMarks(pdf, x, y, cardW, cardH);
+          pdf.setFontSize(7);
+          pdf.setTextColor(120);
+          pdf.text(`#${String(i+1).padStart(3,'0')} · ${rows[i].nameCn}`, x, y + cardH + 4);
+          setProgress(((i + 1) / total) * 100);
+        }
+      }
+
+      pdf.save(`小蚵人營隊_識別證_${rows.length}張.pdf`);
+    } catch (e) {
+      console.error(e);
+      alert('產生 PDF 失敗：' + e.message);
+    } finally {
+      setExporting(false);
+      setTimeout(() => setProgress(0), 600);
+    }
+  }
+
+  return (
+    <>
+      {ReactDOM.createPortal(
+        <ControlPanel rows={rows} onUpload={handleUpload}
+          onClear={() => setRows([])}
+          layout={layout} setLayout={setLayout}
+          defaultQR={defaultQR} setDefaultQR={setDefaultQR}
+          exporting={exporting} progress={progress}
+          onExportAll={handleExportAll} />,
+        document.getElementById('control-panel'))}
+      {ReactDOM.createPortal(
+        <CardsPreview rows={rows} />,
+        document.getElementById('cards-area'))}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.createElement('div')).render(<App />);
+</script>
+
+</body>
+</html>
