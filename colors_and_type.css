@@ -1,0 +1,272 @@
+/* ============================================================
+   小蚵人雙語營隊 · Little Oysters' Storytelling Banquet
+   Design System — Colors & Type
+   ============================================================
+   Source of truth for all RPG-style camp surfaces (schedule,
+   teacher view, slides, marketing). Pulled directly from the
+   live electronic schedule (uploads/index.html).
+   ============================================================ */
+
+/* ---------- Webfonts ---------- */
+/*
+   Huninn 粉圓體 — Traditional Chinese rounded display face used
+   for body, titles, story copy. The original ships the full
+   woff2 inlined (~226KB base64 in the camp HTML). For this
+   design system we link the package via npm CDN; for offline
+   use copy fonts/Huninn-Regular.woff2 from the camp repo.
+
+   Fredoka — Latin display face, paired with Huninn for English
+   subtitles, badges, ALL-CAPS labels, day-of-week headers.
+
+   M PLUS Rounded 1c — Pan-CJK rounded fallback before system
+   fonts kick in.
+*/
+@font-face {
+  font-family: 'Huninn';
+  src: url('./fonts/Huninn-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap');
+
+/* ============================================================
+   COLOR TOKENS
+   ============================================================
+   Two themes: light (米黃 + 竹葉綠 — "rice paper & bamboo")
+   and dark (竹林深夜 — "midnight bamboo grove"). Apply via
+   data-theme="light|dark" on <html>.
+*/
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* — Surfaces — */
+  --bg:          #F4EAD0; /* page rice-paper */
+  --bg-paper:    #EDE0B8; /* slightly deeper paper */
+  --bg-deep:     #E5D49E; /* deepest paper, used in stripes */
+  --panel-bg:    #FFFBEA; /* card / modal cream */
+  --panel-text:  #2F1B0C;
+  --parch:       #F5E5B0; /* quest scroll parchment */
+  --parch-text:  #2F1B0C;
+
+  /* — Ink (text) — */
+  --ink:         #2F1B0C; /* primary brown ink */
+  --ink-light:   #5A3F28;
+  --ink-muted:   #8A6D4F;
+
+  /* — Brand accents — */
+  --gold:        #B8860B; /* dark goldenrod (boss/treasure) */
+  --gold-light:  #E8C560;
+  --leaf:        #2E7D3C; /* bamboo green — primary brand */
+  --leaf-bright: #4CAF50;
+  --leaf-deep:   #1B5E20;
+
+  /* — Status — */
+  --danger:      #8B2414; /* deep crimson, used in quest text */
+
+  /* — Effects — */
+  --shadow:        rgba(47, 27, 12, 0.20);
+  --shadow-strong: rgba(47, 27, 12, 0.35);
+  --muted-bg:      rgba(47, 27, 12, 0.05);
+
+  /* — Five-day quest palette (light theme) —
+     Each day has main / light / accent / text. Drives the
+     schedule grid, day headers, NPC cards, and sticker bg. */
+  --day1-main: #C73E3A; --day1-light: #FFE4E1; --day1-accent: #E85A56; --day1-text: #8B2414; /* MON 勇者的誕生 — fire red */
+  --day2-main: #2D4A8A; --day2-light: #E0E8F5; --day2-accent: #4568B0; --day2-text: #1F3566; /* TUE 元素的秘密 — water blue */
+  --day3-main: #2E7D32; --day3-light: #E3F2E3; --day3-accent: #4CAF50; --day3-text: #1B5E20; /* WED 市集大冒險 — leaf green */
+  --day4-main: #6A4C93; --day4-light: #EDE3F5; --day4-accent: #8E6BB3; --day4-text: #4A3368; /* THU 說書人特訓 — bard violet */
+  --day5-main: #C71585; --day5-light: #FDE0F0; --day5-accent: #DC4AA0; --day5-text: #8E0F5C; /* FRI 傳說再現 — banquet pink */
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg:          #1A2818;
+  --bg-paper:    #243322;
+  --bg-deep:     #2D4028;
+  --panel-bg:    #243322;
+  --panel-text:  #F5EAD0;
+  --parch:       #3A4A35;
+  --parch-text:  #F0E6C8;
+
+  --ink:         #F0E6C8;
+  --ink-light:   #D4C99A;
+  --ink-muted:   #A89968;
+
+  --gold:        #FFD54F;
+  --gold-light:  #FFE680;
+  --leaf:        #81C784;
+  --leaf-bright: #A5D6A7;
+  --leaf-deep:   #66BB6A;
+
+  --danger:      #EF5350;
+
+  --shadow:        rgba(0, 0, 0, 0.6);
+  --shadow-strong: rgba(0, 0, 0, 0.8);
+  --muted-bg:      rgba(255, 255, 255, 0.08);
+
+  /* darker, picture-book saturation for dark theme */
+  --day1-main: #8B3535; --day1-light: #3D1414; --day1-accent: #A64545; --day1-text: #FFFBEA;
+  --day2-main: #2C4A7E; --day2-light: #142238; --day2-accent: #3D5F96; --day2-text: #FFFBEA;
+  --day3-main: #2D6E3B; --day3-light: #13301A; --day3-accent: #3C8A4C; --day3-text: #FFFBEA;
+  --day4-main: #5A3A7E; --day4-light: #261838; --day4-accent: #7350A0; --day4-text: #FFFBEA;
+  --day5-main: #953D6B; --day5-light: #3F1A2E; --day5-accent: #B4508A; --day5-text: #FFFBEA;
+}
+
+/* ============================================================
+   SPACING / RADII / SHADOW SYSTEM
+   ============================================================ */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Cards are softly rounded (RPG sticker feel), buttons slightly rounded. */
+  --radius-sm: 6px;   /* badges, banners */
+  --radius-md: 12px;  /* schedule cells, quest board */
+  --radius-lg: 18px;  /* hero card, modals */
+  --radius-pill: 999px;
+
+  /* Borders are HEAVY and INKY — the brand's signature. */
+  --border-thin:    2px solid var(--ink);
+  --border-medium:  2.5px solid var(--ink);
+  --border-bold:    3px solid var(--ink);
+  --border-hero:    3.5px solid var(--ink);
+
+  /* Hard offset shadow — sticker / picture-book feel.
+     Always solid ink, never a soft Gaussian blur. */
+  --shadow-sticker:    3px 3px 0 var(--ink);
+  --shadow-sticker-sm: 2px 2px 0 var(--ink);
+  --shadow-sticker-lg: 5px 5px 0 var(--ink);
+
+  /* Soft drop, used SPARINGLY for floating NPC images only. */
+  --shadow-soft: 0 6px 18px var(--shadow);
+}
+
+/* ============================================================
+   TYPOGRAPHY — base + semantic
+   ============================================================
+   Family pairing rule:
+   - Chinese / mixed copy → Huninn (粉圓體)
+   - English ALL-CAPS labels, banners, day names → Fredoka
+     uppercase, letter-spacing 0.08em–0.15em
+   - Both faces are ROUNDED — no sharp serifs anywhere
+*/
+
+:root {
+  --font-display: 'Huninn', 'M PLUS Rounded 1c', 'Noto Sans TC',
+                  'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  --font-latin:   'Fredoka', 'M PLUS Rounded 1c', sans-serif;
+  --font-body:    'Huninn', 'M PLUS Rounded 1c', 'Noto Sans TC',
+                  'PingFang TC', 'Microsoft JhengHei', sans-serif;
+
+  --line-tight: 1.15;
+  --line-snug:  1.45;
+  --line-base:  1.75;
+  --line-loose: 1.95;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--bg);
+  line-height: var(--line-base);
+}
+
+/* — Display: hero camp title — */
+.h-hero,
+h1.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: var(--line-tight);
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: var(--leaf-deep);
+}
+[data-theme="dark"] .h-hero,
+[data-theme="dark"] h1.hero-title { color: var(--gold-light); }
+
+/* — Section titles 二級標題 — */
+.h-section,
+h2.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  line-height: var(--line-snug);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* — Card title 三級標題 — */
+.h-card,
+h3 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  line-height: 1.3;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* — Body 正文 — */
+.t-body, p {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: var(--line-base);
+  color: var(--ink-light);
+}
+
+/* — Small / caption — */
+.t-small {
+  font-size: 0.9rem;
+  color: var(--ink-muted);
+  line-height: var(--line-snug);
+}
+
+/* — English banner / label —
+   Fredoka uppercase, wide tracking, used for "TAINAN BILINGUAL CAMP",
+   "MAIN QUEST", "QUEST INFO", day names (MON–FRI). */
+.t-banner,
+.hero-banner,
+.quest-label,
+.col-day {
+  font-family: var(--font-latin);
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* — Bilingual subtitle row —
+   Used under the main Chinese title, e.g.
+   "Little Oysters' Storytelling Banquet · Bilingual Camp" */
+.t-subtitle {
+  font-family: var(--font-latin);
+  font-weight: 600;
+  font-size: clamp(0.8rem, 1.7vw, 0.95rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--leaf);
+}
+
+/* — Quest scroll body —
+   Slightly larger, looser, parchment-coloured. */
+.t-quest {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  line-height: var(--line-loose);
+  color: var(--parch-text);
+}
+.t-quest strong { color: var(--danger); font-weight: normal; }
+
+/* — Mono / code (rare; mainly for time slots) — */
+.t-mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.95rem;
+}

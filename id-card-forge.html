@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<title>識別證設計系統 · ID Card Workshop · 小蚵人雙語營隊</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="card-template.css">
+
+<style>
+.hub {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 60px 28px 80px;
+  text-align: center;
+}
+
+.hub-banner {
+  display: inline-block;
+  font-family: var(--font-latin);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--gold);
+  padding: 6px 18px;
+  border: 2.5px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 3px 3px 0 var(--ink);
+  margin-bottom: 18px;
+}
+.hub-banner::before { content: '⚔️ '; }
+.hub-banner::after  { content: ' ⚔️'; }
+
+.hub-crown {
+  display: block;
+  font-size: 2.2rem;
+  margin-bottom: 6px;
+  animation: cardSparkle 2.4s ease-in-out infinite;
+  color: var(--gold);
+  text-shadow: 2px 2px 0 var(--ink);
+}
+
+.hub-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 700;
+  color: var(--leaf-deep);
+  margin: 0 0 8px;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+}
+
+.hub-subtitle {
+  font-family: var(--font-latin);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 6px;
+}
+
+.hub-tagline {
+  font-family: var(--font-display);
+  color: var(--ink-light);
+  font-size: 1.05rem;
+  max-width: 520px;
+  margin: 8px auto 0;
+  line-height: 1.7;
+}
+.hub-tagline strong {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+/* === 兩張英雄卡 === */
+.hub-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  margin-top: 50px;
+  text-align: left;
+}
+@media (max-width: 1100px) {
+  .hub-options { grid-template-columns: 1fr; }
+}
+
+.hub-card {
+  position: relative;
+  background: var(--panel-bg);
+  border: 3.5px solid var(--ink);
+  border-radius: 18px;
+  padding: 32px 28px 28px;
+  box-shadow: 6px 6px 0 var(--ink);
+  text-decoration: none;
+  color: var(--ink);
+  transition: all 0.18s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 360px;
+}
+.hub-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0 var(--ink);
+}
+.hub-card:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+/* 班別色帶 */
+.hub-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 8px;
+  background: var(--accent, var(--leaf));
+  border-bottom: 2.5px solid var(--ink);
+}
+
+.hub-card--single  { --accent: var(--day3-accent); }
+.hub-card--batch   { --accent: var(--day1-accent); }
+.hub-card--teacher { --accent: var(--day4-accent); }
+
+.hub-card-emoji {
+  font-size: 2.6rem;
+  line-height: 1;
+  filter: drop-shadow(2px 2px 0 var(--ink));
+}
+
+.hub-card-title {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--leaf-deep);
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.hub-card-title-en {
+  font-family: var(--font-latin);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.hub-card-desc {
+  font-family: var(--font-display);
+  color: var(--ink-light);
+  line-height: 1.7;
+  margin: 0;
+  font-size: 0.96rem;
+  flex: 1;
+}
+
+.hub-card-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+.hub-card-features li {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  color: var(--ink-light);
+}
+.hub-card-features li::before {
+  content: '✦';
+  color: var(--gold);
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+.hub-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--ink);
+  background: var(--accent);
+  padding: 11px 18px;
+  border: 2.5px solid var(--ink);
+  border-radius: 999px;
+  align-self: center;
+  margin-top: 6px;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+/* === 規格資訊條 === */
+.hub-specs {
+  margin-top: 50px;
+  background: var(--parch);
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 var(--ink);
+  padding: 22px 28px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 22px;
+  text-align: left;
+}
+.hub-spec-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hub-spec-key {
+  font-family: var(--font-latin);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--leaf-deep);
+}
+.hub-spec-val {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--parch-text);
+}
+.hub-spec-note {
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+  line-height: 1.4;
+}
+
+/* === 範例卡縮圖 === */
+.hub-sample {
+  margin-top: 60px;
+}
+.hub-sample-title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  margin: 0 0 6px;
+  color: var(--leaf-deep);
+  font-weight: 700;
+}
+.hub-sample-en {
+  font-family: var(--font-latin);
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 28px;
+}
+
+.hub-sample-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0;
+  justify-content: center;
+  align-items: flex-start;
+  padding-bottom: 8px;
+}
+.hub-sample-row > * {
+  flex: 0 0 auto;
+  width: 31%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.hub-sample-row .id-card {
+  transform: scale(0.36);
+  transform-origin: top center;
+  margin-bottom: -380px;
+}
+@media (max-width: 720px) {
+  .hub-sample-row { flex-wrap: wrap; gap: 12px; }
+  .hub-sample-row > * { width: 100%; }
+  .hub-sample-row .id-card { transform: scale(0.6); margin-bottom: -240px; }
+}
+
+.hub-sample-cap {
+  font-family: var(--font-latin);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+/* 點擊放大 */
+.hub-sample-row > * { cursor: zoom-in; transition: transform 0.2s; }
+.hub-sample-row > *:hover { transform: translateY(-4px); }
+.hub-sample-row > *:hover .id-card { box-shadow: 0 8px 24px rgba(0,0,0,0.18); }
+
+/* Lightbox 燈箱 */
+.lightbox {
+  position: fixed; inset: 0;
+  background: rgba(20, 14, 8, 0.85);
+  z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  animation: lb-fade 0.18s ease-out;
+  cursor: zoom-out;
+  backdrop-filter: blur(4px);
+  overflow: auto;
+}
+@keyframes lb-fade { from { opacity: 0; } to { opacity: 1; } }
+.lightbox-stage {
+  display: flex; flex-direction: column; align-items: center; gap: 24px;
+  pointer-events: none;
+  margin: auto;
+}
+.lightbox-stage .id-card {
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  pointer-events: auto;
+  flex-shrink: 0;
+}
+.lightbox-cap {
+  pointer-events: auto;
+  color: #FFFBEA;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  background: rgba(0,0,0,0.4);
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255,251,234,0.3);
+}
+.lightbox-close {
+  position: fixed; top: 20px; right: 24px;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(255,251,234,0.15);
+  color: #FFFBEA;
+  border: 2px solid rgba(255,251,234,0.4);
+  font-size: 1.4rem; font-weight: 700;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10000;
+}
+.lightbox-close:hover { background: rgba(255,251,234,0.3); }
+
+/* 頁尾 */
+.hub-foot {
+  margin-top: 80px;
+  font-family: var(--font-display);
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+.hub-foot strong {
+  color: var(--leaf-deep);
+}
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="npc-data.js"></script>
+</head>
+<body>
+
+<div class="hub">
+  <span class="hub-crown">♛</span>
+  <div class="hub-banner">Tainan Bilingual Camp · ID Card Workshop</div>
+  <h1 class="hub-title">小蚵人營隊 · 識別證鑄造所</h1>
+  <p class="hub-subtitle">Little Oysters' Storytelling Banquet</p>
+  <p class="hub-tagline">
+    為每位<strong>綠竹筷勇者</strong>與<strong>說書講師</strong>打造專屬識別證 ——
+    可印可掛，搭配市售透明證件套（10 × 15 cm 直式）即刻上戰場。
+  </p>
+
+  <!-- 兩個入口 -->
+  <div class="hub-options">
+
+    <a href="id-card-single.html" class="hub-card hub-card--single">
+      <div class="hub-card-emoji">🦪</div>
+      <h2 class="hub-card-title">
+        單張快速產生
+        <span class="hub-card-title-en">Single Card</span>
+      </h2>
+      <p class="hub-card-desc">
+        臨時補發、補印、漏掉的勇者？輸入姓名即時預覽，秒下載 PDF。
+      </p>
+      <ul class="hub-card-features">
+        <li>輸入中英姓名 · 即時看到成品</li>
+        <li>選班別、梯次、座號</li>
+        <li>輸出 PDF（A4 含裁切線）/ PNG</li>
+      </ul>
+      <span class="hub-card-cta">開始 Key 名字 →</span>
+    </a>
+
+    <a href="id-card-batch.html" class="hub-card hub-card--batch">
+      <div class="hub-card-emoji">⚔️</div>
+      <h2 class="hub-card-title">
+        批量上傳產生
+        <span class="hub-card-title-en">Batch Cards</span>
+      </h2>
+      <p class="hub-card-desc">
+        整班整梯一次處理。上傳 Excel 名單，自動配色 + 角色 NPC，一鍵打包 PDF。
+      </p>
+      <ul class="hub-card-features">
+        <li>支援 Excel（.xlsx）/ .csv</li>
+        <li>提供範本下載，欄位自動辨識</li>
+        <li>A4 一頁一張或一頁兩張可選</li>
+      </ul>
+      <span class="hub-card-cta">上傳 Excel →</span>
+    </a>
+
+    <a href="id-card-npc.html" class="hub-card hub-card--teacher">
+      <div class="hub-card-emoji">📜</div>
+      <h2 class="hub-card-title">
+        老師 NPC 卡
+        <span class="hub-card-title-en">Teacher NPC</span>
+      </h2>
+      <p class="hub-card-desc">
+        12 位老師專屬角色卡：公會長、御廚、採購專家、總舖師、判官。含角色設定 + 戲服建議。
+      </p>
+      <ul class="hub-card-features">
+        <li>5 種 NPC 角色設定</li>
+        <li>大頭像 + 戲服建議</li>
+        <li>一鍵打包全部老師 PDF</li>
+      </ul>
+      <span class="hub-card-cta">查看老師卡 →</span>
+    </a>
+  </div>
+
+  <!-- 印製規格 -->
+  <div class="hub-specs">
+    <div class="hub-spec-item">
+      <div class="hub-spec-key">📐 Card Size</div>
+      <div class="hub-spec-val">100 × 150 mm</div>
+      <div class="hub-spec-note">直式 · 展覽證件用通用尺寸</div>
+    </div>
+    <div class="hub-spec-item">
+      <div class="hub-spec-key">✂️ With Bleed</div>
+      <div class="hub-spec-val">106 × 156 mm</div>
+      <div class="hub-spec-note">3mm 出血 + 4 角裁切標記</div>
+    </div>
+    <div class="hub-spec-item">
+      <div class="hub-spec-key">📄 Paper</div>
+      <div class="hub-spec-val">A4 / A4 2-up</div>
+      <div class="hub-spec-note">家用印表機或印刷廠皆可</div>
+    </div>
+    <div class="hub-spec-item">
+      <div class="hub-spec-key">🎫 Sleeve</div>
+      <div class="hub-spec-val">市售透明套 + 掛繩</div>
+      <div class="hub-spec-note">直式、尺寸 100×150mm 通用款</div>
+    </div>
+  </div>
+
+  <!-- 範例卡 -->
+  <div class="hub-sample">
+    <h3 class="hub-sample-title">🎴 三種班別示範</h3>
+    <p class="hub-sample-en">SAMPLE BADGES · 3 TEAMS</p>
+
+    <div class="hub-sample-row" id="sample-row"></div>
+  </div>
+
+  <p class="hub-foot">
+    教育部 115 學年雙語實作計畫 × 南臺科技大學
+  </p>
+</div>
+
+<script type="text/babel" src="card-template.jsx"></script>
+
+<script type="text/babel">
+const samples = [
+  { nameCn: '林宥廷', nameEn: 'Ethan',  team: 'oyster',  role: 'hero',    session: 'longgang', seat: '07', contact: '0912-345-678' },
+  { nameCn: '張承恩', nameEn: 'Leo', team: 'bamboo',  role: 'hero',    session: 'longgang', seat: '15', contact: '0923-456-789' },
+  { nameCn: '吳佩珊', nameEn: 'Stella', team: 'teacher', role: 'teacher', npc: 'guildMaster', session: 'baoxi',    seat: '',   contact: '0934-567-890' },
+];
+
+function capLabel(s) {
+  return s.team === 'oyster' ? '🦪 鮮蚵勇者團 · GRADE 1–4'
+       : s.team === 'bamboo' ? '🎋 竹筍勇者團 · GRADE 5–6'
+       : '📜 說書講師團 · TEACHER';
+}
+
+function SampleHub() {
+  const [zoom, setZoom] = React.useState(null);
+  React.useEffect(() => {
+    if (zoom === null) return;
+    const onKey = (e) => { if (e.key === 'Escape') setZoom(null); };
+    window.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [zoom]);
+  return (<>
+    {samples.map((s, i) => (
+      <div key={i} onClick={() => setZoom(i)}
+           style={{display:'flex', flexDirection:'column', alignItems:'center'}}>
+        <IDCard data={s} />
+        <span className="hub-sample-cap">{capLabel(s)}</span>
+      </div>
+    ))}
+    {zoom !== null && ReactDOM.createPortal(
+      <div className="lightbox" onClick={() => setZoom(null)}>
+        <button className="lightbox-close" onClick={(e) => { e.stopPropagation(); setZoom(null); }} aria-label="關閉">✕</button>
+        <div className="lightbox-stage">
+          <IDCard data={samples[zoom]} />
+          <span className="lightbox-cap">{capLabel(samples[zoom])} · 點擊空白處關閉 · ESC</span>
+        </div>
+      </div>,
+      document.body
+    )}
+  </>
+);
+}
+
+ReactDOM.createRoot(document.getElementById('sample-row')).render(<SampleHub />);
+</script>
+
+</body>
+</html>

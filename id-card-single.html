@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<title>單張識別證 · Single Card · 小蚵人雙語營隊</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="card-template.css">
+
+<!-- Libraries -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<!-- QR Code -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="npc-data.js"></script>
+<!-- html2canvas + jsPDF for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+.stage--single {
+  align-items: center;
+  justify-content: center;
+}
+.single-preview-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: #fff;
+  border: 2.5px dashed var(--ink);
+  border-radius: 12px;
+  position: relative;
+}
+.bleed-hint {
+  position: absolute;
+  top: -14px;
+  left: 16px;
+  background: var(--gold);
+  color: var(--ink);
+  font-family: var(--font-latin);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  padding: 3px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+
+<div class="workbench">
+  <div class="wb-header">
+    <div>
+      <h1 class="wb-title">
+        🦪 單張識別證
+        <span class="wb-title-en">Single Hero Badge</span>
+      </h1>
+      <p class="wb-subtitle">輸入勇者姓名，立即下載專屬識別證</p>
+    </div>
+    <a href="id-card-forge.html" class="wb-back-link">← 回主頁</a>
+  </div>
+
+  <div class="wb-grid">
+    <!-- 控制面板 -->
+    <div class="panel" id="control-panel"></div>
+
+    <!-- 預覽舞台 -->
+    <div class="stage stage--single">
+      <div class="stage-header">
+        <h2 class="stage-header-title">📋 即時預覽 · Live Preview</h2>
+        <span class="stage-header-meta">100 × 150 mm + 3mm bleed</span>
+      </div>
+      <div class="single-preview-wrap" id="preview-wrap">
+        <span class="bleed-hint">含 3mm 出血</span>
+        <div id="card-mount"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 隱藏列印用容器 -->
+<div class="print-canvas" id="export-canvas"></div>
+
+<script type="text/babel" src="card-template.jsx"></script>
+
+<script type="text/babel">
+const { useState, useMemo, useRef } = React;
+
+function ControlPanel({ data, setData, onExportPDF, onExportPNG, exporting }) {
+  const update = (k) => (e) => setData({ ...data, [k]: e.target.value });
+
+  return (
+    <div>
+      <div className="panel-section">
+        <h3 className="panel-section-title">
+          📜 勇者資料
+          <span className="panel-section-title-en">Hero Info</span>
+        </h3>
+
+        <div className="field">
+          <label className="field-label">
+            中文姓名
+            <span className="field-label-en">CN Name</span>
+          </label>
+          <input className="input" type="text" value={data.nameCn}
+            onChange={update('nameCn')} placeholder="例：林宥廷" maxLength={8} />
+        </div>
+
+        <div className="field">
+          <label className="field-label">
+            英文名
+            <span className="field-label-en">English Name</span>
+          </label>
+          <input className="input" type="text" value={data.nameEn}
+            onChange={update('nameEn')} placeholder="例：Ethan" />
+        </div>
+      </div>
+
+      <div className="panel-section">
+        <h3 className="panel-section-title">
+          ⚔️ 班別
+          <span className="panel-section-title-en">Team</span>
+        </h3>
+        <div className="segmented">
+          {[
+            { v: 'oyster',  label: '🦪 鮮蚵' },
+            { v: 'bamboo',  label: '🎋 竹筍' },
+            { v: 'teacher', label: '📜 講師' },
+          ].map(o => (
+            <label key={o.v}>
+              <input type="radio" name="team" value={o.v}
+                checked={data.team === o.v}
+                onChange={() => setData({ ...data, team: o.v, role: o.v === 'teacher' ? 'teacher' : 'hero' })} />
+              <span>{o.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {data.team === 'teacher' && (
+        <div className="panel-section">
+          <h3 className="panel-section-title">
+            🎭 NPC 角色
+            <span className="panel-section-title-en">NPC Role</span>
+          </h3>
+          <div className="field">
+            <select className="input" value={data.npc} onChange={update('npc')}>
+              {Object.values(window.NPC_ROLES || {}).map(r => (
+                <option key={r.id} value={r.id}>
+                  {r.emoji} {r.cnName} · {r.enName}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
+
+      <div className="panel-section">
+        <h3 className="panel-section-title">
+          🗺️ 梯次
+          <span className="panel-section-title-en">Camp Session</span>
+        </h3>
+        <div className="segmented">
+          {[
+            { v: 'longgang', label: '龍崗 7/6' },
+            { v: 'baoxi',    label: '保西 8/17' },
+          ].map(o => (
+            <label key={o.v}>
+              <input type="radio" name="session" value={o.v}
+                checked={data.session === o.v} onChange={() => setData({ ...data, session: o.v })} />
+              <span>{o.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="panel-section">
+        <h3 className="panel-section-title">
+          📋 其他
+          <span className="panel-section-title-en">Extra</span>
+        </h3>
+        <div className="field">
+          <label className="field-label">座號 / 編號 <span className="field-label-en">Seat</span></label>
+          <input className="input" type="text" value={data.seat} onChange={update('seat')} placeholder="（選填）" />
+        </div>
+        <div className="field">
+          <label className="field-label">緊急聯絡 <span className="field-label-en">SOS</span></label>
+          <input className="input" type="text" value={data.contact} onChange={update('contact')} placeholder="0912-345-678" />
+        </div>
+        <div className="field">
+          <label className="field-label">QR 連結 <span className="field-label-en">QR URL</span></label>
+          <input className="input" type="text" value={data.qrUrl} onChange={update('qrUrl')} />
+        </div>
+      </div>
+
+      <div className="panel-section">
+        <div className="btn-row">
+          <button className="btn btn--primary btn--block btn--lg"
+            onClick={onExportPDF} disabled={exporting || !data.nameCn}>
+            {exporting ? <span className="loading">產生中…</span> : <>📄 下載 PDF（A4）</>}
+          </button>
+          <button className="btn btn--block" onClick={onExportPNG} disabled={exporting || !data.nameCn}>
+            🖼️ 下載 PNG
+          </button>
+        </div>
+        {!data.nameCn && (
+          <p style={{fontSize:'0.82rem', color:'var(--ink-muted)', marginTop:8, textAlign:'center'}}>
+            ☝️ 請先輸入中文姓名
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [data, setData] = useState({
+    nameCn:  '林宥廷',
+    nameEn:  'Ethan',
+    team:    'oyster',
+    role:    'hero',
+    npc:     'guildMaster',
+    session: 'longgang',
+    seat:    '01',
+    contact: '0912-345-678',
+    qrUrl:   'https://nb41f002.github.io/oyster-camp/',
+  });
+  const [exporting, setExporting] = useState(false);
+  const previewRef = useRef(null);
+
+  // 為 PDF 匯出，把卡片渲染到隱藏 canvas，1:1 mm 尺寸
+  async function renderCardToCanvas() {
+    const exportRoot = document.getElementById('export-canvas');
+    exportRoot.innerHTML = '';
+    const mount = document.createElement('div');
+    mount.style.cssText = 'background:#fff; padding:0; display:inline-block;';
+    exportRoot.appendChild(mount);
+    const root = ReactDOM.createRoot(mount);
+    await new Promise(resolve => {
+      root.render(<IDCard data={data} />);
+      setTimeout(resolve, 400); // 等 QR 渲染
+    });
+    const cardEl = mount.querySelector('.id-card');
+    const canvas = await html2canvas(cardEl, {
+      scale: 4,           // 高解析輸出 (~ 300 dpi)
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      logging: false,
+    });
+    return { canvas, mount, root };
+  }
+
+  async function handleExportPDF() {
+    setExporting(true);
+    try {
+      const { canvas, mount, root } = await renderCardToCanvas();
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+      // A4 = 210 × 297；卡片 106 × 156 含出血，置中
+      const cardW = 106, cardH = 156;
+      const x = (210 - cardW) / 2;
+      const y = (297 - cardH) / 2;
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, y, cardW, cardH);
+
+      // 加裁切標記
+      pdf.setDrawColor(47, 27, 12);
+      pdf.setLineWidth(0.2);
+      const m = 4; // 標記長度
+      const b = 3; // 出血
+      // 4 角
+      [
+        [x + b, y],     // top-left
+        [x + cardW - b, y],
+        [x + b, y + cardH],
+        [x + cardW - b, y + cardH],
+      ].forEach(([cx, cy], i) => {
+        const top = i < 2;
+        // 垂直線（跨出血）
+        pdf.line(cx, cy + (top ? -m - b : b), cx, cy + (top ? -b : b + m));
+      });
+      [
+        [x, y + b],
+        [x + cardW, y + b],
+        [x, y + cardH - b],
+        [x + cardW, y + cardH - b],
+      ].forEach(([cx, cy], i) => {
+        const left = i % 2 === 0;
+        pdf.line(cx + (left ? -m - b : b), cy, cx + (left ? -b : b + m), cy);
+      });
+
+      const fname = `識別證_${data.nameCn || 'card'}.pdf`;
+      pdf.save(fname);
+
+      // cleanup
+      setTimeout(() => { try { root.unmount(); } catch(e){} mount.remove(); }, 200);
+    } catch (e) {
+      console.error(e);
+      alert('產生 PDF 失敗：' + e.message);
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function handleExportPNG() {
+    setExporting(true);
+    try {
+      const { canvas, mount, root } = await renderCardToCanvas();
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `識別證_${data.nameCn || 'card'}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+      setTimeout(() => { try { root.unmount(); } catch(e){} mount.remove(); }, 200);
+    } catch (e) {
+      console.error(e);
+      alert('產生 PNG 失敗：' + e.message);
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  return (
+    <>
+      <ControlPanel data={data} setData={setData}
+        onExportPDF={handleExportPDF}
+        onExportPNG={handleExportPNG}
+        exporting={exporting} />
+    </>
+  );
+}
+
+// 控制面板掛載
+const panelRoot = ReactDOM.createRoot(document.getElementById('control-panel'));
+const cardRoot  = ReactDOM.createRoot(document.getElementById('card-mount'));
+
+// 由於 React state 在 App 內，我們需要把卡片預覽也用同一個 state。
+// 改寫成單一 root，把控制面板與預覽都包進來
+panelRoot.unmount();
+cardRoot.unmount();
+
+const Wrapper = () => {
+  const [data, setData] = React.useState({
+    nameCn:  '林宥廷',
+    nameEn:  'Ethan',
+    team:    'oyster',
+    role:    'hero',
+    npc:     'guildMaster',
+    session: 'longgang',
+    seat:    '01',
+    contact: '0912-345-678',
+    qrUrl:   'https://nb41f002.github.io/oyster-camp/',
+  });
+  const [exporting, setExporting] = React.useState(false);
+
+  async function renderCardToCanvas() {
+    const exportRoot = document.getElementById('export-canvas');
+    exportRoot.innerHTML = '';
+    const mount = document.createElement('div');
+    mount.style.cssText = 'background:#fff; display:inline-block;';
+    exportRoot.appendChild(mount);
+    const root = ReactDOM.createRoot(mount);
+    await new Promise(resolve => {
+      root.render(<IDCard data={data} />);
+      setTimeout(resolve, 500);
+    });
+    const cardEl = mount.querySelector('.id-card');
+    const canvas = await html2canvas(cardEl, {
+      scale: 4, backgroundColor: '#ffffff', useCORS: true, logging: false,
+    });
+    return { canvas, mount, root };
+  }
+
+  async function handleExportPDF() {
+    setExporting(true);
+    try {
+      const { canvas, mount, root } = await renderCardToCanvas();
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+      const cardW = 106, cardH = 156;
+      const x = (210 - cardW) / 2;
+      const y = (297 - cardH) / 2;
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, y, cardW, cardH);
+      // 裁切線
+      pdf.setDrawColor(47, 27, 12);
+      pdf.setLineWidth(0.2);
+      const m = 4, b = 3;
+      // 垂直裁切標記
+      for (const cx of [x + b, x + cardW - b]) {
+        pdf.line(cx, y - m - b, cx, y - b);
+        pdf.line(cx, y + cardH + b, cx, y + cardH + b + m);
+      }
+      // 水平裁切標記
+      for (const cy of [y + b, y + cardH - b]) {
+        pdf.line(x - m - b, cy, x - b, cy);
+        pdf.line(x + cardW + b, cy, x + cardW + b + m, cy);
+      }
+      pdf.save(`識別證_${data.nameCn || 'card'}.pdf`);
+      setTimeout(() => { try { root.unmount(); } catch(e){} mount.remove(); }, 200);
+    } catch (e) { console.error(e); alert('產生 PDF 失敗：' + e.message); }
+    finally { setExporting(false); }
+  }
+
+  async function handleExportPNG() {
+    setExporting(true);
+    try {
+      const { canvas, mount, root } = await renderCardToCanvas();
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `識別證_${data.nameCn || 'card'}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+      setTimeout(() => { try { root.unmount(); } catch(e){} mount.remove(); }, 200);
+    } catch (e) { console.error(e); alert('PNG 失敗：' + e.message); }
+    finally { setExporting(false); }
+  }
+
+  return (
+    <>
+      {ReactDOM.createPortal(
+        <ControlPanel data={data} setData={setData}
+          onExportPDF={handleExportPDF} onExportPNG={handleExportPNG}
+          exporting={exporting} />,
+        document.getElementById('control-panel'))}
+      {ReactDOM.createPortal(
+        <IDCard data={data} />,
+        document.getElementById('card-mount'))}
+    </>
+  );
+};
+
+ReactDOM.createRoot(document.createElement('div')).render(<Wrapper />);
+// 上面用 detached div 作為 host 讓兩個 portal 都同時存活
+</script>
+
+</body>
+</html>
