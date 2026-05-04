@@ -77,6 +77,16 @@
   gap: 10px;
   align-items: end;
 }
+/* 手機版（窄螢幕）改為垂直堆疊，讓下拉選單佔滿寬度，
+   名稱（公會長 — 朱慧容（龍崗））才能完整顯示 */
+@media (max-width: 640px) {
+  .single-card-form {
+    grid-template-columns: 1fr;
+  }
+  .single-card-form .btn {
+    width: 100%;
+  }
+}
 .single-card-select {
   font-family: var(--font-display);
   font-size: 1rem;
@@ -88,6 +98,9 @@
   color: var(--ink);
   cursor: pointer;
   width: 100%;
+  /* 讓長文字盡量擠進去（部分瀏覽器支援），避免被截斷 */
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 .single-card-select:focus { outline: 3px solid var(--gold); outline-offset: 2px; }
 
@@ -254,7 +267,7 @@
         <span class="wb-title-en">Teacher NPC Cards</span></h1>
       <p class="wb-subtitle">12 位主講老師的角色卡 · 預先烤好 · 即點即下載</p>
     </div>
-    <a href="id-card-forge.html" class="wb-back-link">← 回主頁</a>
+    <a href="index.html" class="wb-back-link">← 回主頁</a>
   </div>
 
   <!-- 兩個批次的下載入口 -->
