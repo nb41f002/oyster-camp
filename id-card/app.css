@@ -509,6 +509,144 @@ body::before {
   to { transform: rotate(360deg); }
 }
 
+/* ========== 手機版優化（窄螢幕）========== */
+/* 防止水平滾動：box-shadow 偏移在窄螢幕容易讓整頁產生橫向捲軸 */
+html, body { overflow-x: hidden; }
+
+@media (max-width: 640px) {
+  /* 工作台容器：縮小左右 padding，讓內容更貼近螢幕 */
+  .workbench {
+    padding: 16px 12px 60px;
+  }
+
+  /* 頁首：題目和回主頁鈕間距收緊 */
+  .wb-header {
+    padding: 14px 0 16px;
+    margin-bottom: 20px;
+    gap: 10px;
+  }
+
+  /* 標題：中英直排，避免「單張識別/證」斷字 */
+  .wb-title {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+    font-size: clamp(1.45rem, 5.6vw, 1.95rem) !important;
+    line-height: 1.2;
+  }
+  .wb-title-en {
+    font-size: 0.66rem !important;
+    letter-spacing: 0.14em !important;
+  }
+  .wb-subtitle {
+    font-size: 0.88rem;
+  }
+
+  /* 回主頁鈕：縮小 + 降低陰影偏移 */
+  .wb-back-link {
+    font-size: 0.74rem;
+    padding: 6px 12px;
+    box-shadow: 2px 2px 0 var(--ink);
+    border-width: 2px;
+  }
+
+  /* 雙欄轉單欄時把間距收緊 */
+  .wb-grid {
+    gap: 18px;
+  }
+
+  /* 控制面板：縮 padding & 陰影，讓內容更靠齊邊緣 */
+  .panel {
+    padding: 16px 14px 18px;
+    box-shadow: 3px 3px 0 var(--ink);
+    border-radius: 12px;
+    border-width: 2.5px;
+  }
+  .panel-section {
+    padding-top: 14px;
+    margin-top: 14px;
+  }
+  .panel-section-title {
+    font-size: 1rem;
+    flex-wrap: wrap;
+  }
+  .panel-section-title-en {
+    font-size: 0.66rem;
+  }
+
+  /* 表單：iOS Safari 在 font-size < 16px 時會自動放大畫面，鎖 16px 防止 */
+  .input,
+  .select {
+    font-size: 16px;
+    padding: 9px 11px;
+  }
+
+  /* 分段選擇器：在窄螢幕上維持單列、縮一點字 */
+  .segmented label span {
+    padding: 8px 6px;
+    font-size: 0.82rem;
+  }
+
+  /* 預覽舞台：大幅縮小 padding 把可視寬度留給卡片 */
+  .stage {
+    padding: 18px 10px;
+    min-height: auto;
+    gap: 16px;
+    border-radius: 14px;
+  }
+  .stage-header {
+    padding: 0 4px 10px;
+  }
+  .stage-header-title {
+    font-size: 0.92rem;
+  }
+  .stage-header-meta {
+    font-size: 0.66rem;
+  }
+
+  /* 按鈕：陰影偏移壓低，不爆出畫面 */
+  .btn {
+    font-size: 0.95rem;
+    padding: 11px 16px;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  .btn--lg {
+    font-size: 1rem;
+    padding: 12px 20px;
+  }
+
+  /* 拖放上傳區、提示橫條 */
+  .dropzone {
+    padding: 20px 14px;
+  }
+  .notice {
+    padding: 10px 12px;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+
+  /* 批量頁的統計卡片 */
+  .stat {
+    min-width: 70px;
+    padding: 6px 8px;
+  }
+  .stat-num {
+    font-size: 1.2rem;
+  }
+}
+
+/* 更小螢幕（iPhone SE、舊機）再進一步縮 */
+@media (max-width: 400px) {
+  .workbench {
+    padding: 12px 8px 50px;
+  }
+  .panel {
+    padding: 14px 12px 16px;
+  }
+  .stage {
+    padding: 14px 6px;
+  }
+}
+
 /* ========== 列印區（隱藏在螢幕上）========== */
 .print-canvas {
   position: absolute;
