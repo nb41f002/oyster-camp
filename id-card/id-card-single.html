@@ -54,10 +54,13 @@
 
 /* 手機版（窄螢幕）卡片預覽縮放 — 全頁面通用樣式已移到 app.css */
 @media (max-width: 640px) {
-  /* 預覽外框：邊距收緊 */
+  /* 預覽外框：邊距收緊，並改為 overflow: visible 讓「含 3mm 出血」標籤完整露出
+     （原本的 overflow:hidden 是用來剪超寬卡片，但卡片現在用 scale 縮過已經剛好；
+     橫向溢出由 .stage 的 overflow-x:hidden 把關，不會影響整頁版面） */
   .single-preview-wrap {
     padding: 6px;
     border-width: 2px;
+    overflow: visible;
   }
   .bleed-hint {
     font-size: 0.6rem;
