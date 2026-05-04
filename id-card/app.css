@@ -118,6 +118,13 @@ body::before {
   position: sticky;
   top: 20px;
 }
+/* 手機版（單欄）取消 sticky，避免控制面板浮在下方預覽圖上 */
+@media (max-width: 980px) {
+  .panel {
+    position: static;
+    top: auto;
+  }
+}
 
 .panel-section {
   border-top: 2px dashed var(--ink-muted);
