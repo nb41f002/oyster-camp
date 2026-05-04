@@ -52,39 +52,49 @@
   z-index: 2;
 }
 
-/* 手機版（窄螢幕）優化 */
+/* 手機版（窄螢幕）卡片預覽縮放 — 全頁面通用樣式已移到 app.css */
 @media (max-width: 640px) {
-  /* 標題：中英文垂直堆疊，避免「單張識別 / 證」斷字 */
-  .wb-title {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-  .wb-title-en {
-    font-size: 0.72rem;
-  }
-
-  /* 預覽舞台：縮小邊距留更多卡片空間 */
-  .stage {
-    padding: 20px 8px;
-  }
+  /* 預覽外框：邊距收緊 */
   .single-preview-wrap {
     padding: 6px;
+    border-width: 2px;
+  }
+  .bleed-hint {
+    font-size: 0.6rem;
+    padding: 2px 8px;
+    top: -11px;
+    left: 10px;
+    letter-spacing: 0.10em;
   }
 
-  /* 卡片預覽縮小到 80%，並把縮放後留白收回 */
+  /* 卡片預覽縮到 78%（iPhone 12/13/14 約 390px 安全可放） */
   .stage--single .id-card {
-    transform: scale(0.80);
+    transform: scale(0.78);
     transform-origin: top center;
-    margin-bottom: -118px; /* 156mm * 20% ≈ 118px 高度補償 */
+    margin-bottom: -130px; /* 590px × 22% ≈ 130px 高度補償 */
   }
 }
 
-@media (max-width: 400px) {
-  /* 更小的螢幕（iPhone SE 等）縮到 70% */
+/* iPhone SE / 一般 4 吋機 */
+@media (max-width: 420px) {
   .stage--single .id-card {
-    transform: scale(0.70);
-    margin-bottom: -177px; /* 156mm * 30% ≈ 177px */
+    transform: scale(0.72);
+    margin-bottom: -165px;
+  }
+}
+
+/* 更小螢幕（舊型 Android、緊縮畫面） */
+@media (max-width: 380px) {
+  .stage--single .id-card {
+    transform: scale(0.66);
+    margin-bottom: -200px;
+  }
+}
+
+@media (max-width: 340px) {
+  .stage--single .id-card {
+    transform: scale(0.58);
+    margin-bottom: -248px;
   }
 }
 </style>
