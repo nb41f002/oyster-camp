@@ -108,6 +108,14 @@ body::before {
   .wb-grid { grid-template-columns: 1fr; }
 }
 
+/* 關鍵防溢出：min-width:0 讓 grid/flex 子項不被內部固定寬度元素撐開
+   （例如 .id-card 在 card-template.css 裡是 100mm ≈ 400px 固定寬度，
+   會撐開 1fr 欄位導致 panel 也跟著超寬，在手機上整個爆出畫面） */
+.wb-grid > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
 /* ========== 控制面板 ========== */
 .panel {
   background: var(--panel-bg);
@@ -304,6 +312,8 @@ body::before {
   flex-direction: column;
   align-items: center;
   gap: 24px;
+  overflow-x: hidden;          /* 防止 400px 寬的 .id-card 視覺溢出 stage 欄位 */
+  max-width: 100%;
 }
 
 .stage-header {
