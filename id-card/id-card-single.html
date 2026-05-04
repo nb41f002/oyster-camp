@@ -32,7 +32,6 @@
   border: 2.5px dashed var(--ink);
   border-radius: 12px;
   position: relative;
-  /* 確保預覽框本身不會撐爆容器 */
   max-width: 100%;
   overflow: hidden;
 }
@@ -53,15 +52,9 @@
   z-index: 2;
 }
 
-/* 卡片容器：根據螢幕寬度自動縮放卡片，避免溢出 */
-.single-card-scaler {
-  transform-origin: top center;
-  transition: transform 0.15s ease;
-}
-
-/* === 手機版：標題、卡片預覽縮放 === */
+/* 手機版（窄螢幕）優化 */
 @media (max-width: 640px) {
-  /* 標題：中英文垂直堆疊，避免中文被斷字成「單張識別 / 證」 */
+  /* 標題：中英文垂直堆疊，避免「單張識別 / 證」斷字 */
   .wb-title {
     flex-direction: column;
     align-items: flex-start;
@@ -71,27 +64,30 @@
     font-size: 0.72rem;
   }
 
-  /* 預覽舞台：縮小 padding 多留空間給卡片 */
+  /* 預覽舞台：縮小邊距留更多卡片空間 */
   .stage {
-    padding: 20px 10px;
+    padding: 20px 8px;
   }
-  .stage-header {
-    padding: 0 4px 10px;
-  }
-  .stage-header-title {
-    font-size: 0.95rem;
-  }
-  .stage-header-meta {
-    font-size: 0.7rem;
+  .single-preview-wrap {
+    padding: 6px;
   }
 
-  /* 預覽框：縮小 padding，讓卡片有更多空間 */
-  .single-preview-wrap {
-    padding: 8px;
+  /* 卡片預覽縮小到 80%，並把縮放後留白收回 */
+  .stage--single .id-card {
+    transform: scale(0.80);
+    transform-origin: top center;
+    margin-bottom: -118px; /* 156mm * 20% ≈ 118px 高度補償 */
   }
 }
 
-/* @media 內無法用 calc 設 transform，所以用 JS 動態計算（見下方 useEffect） */
+@media (max-width: 400px) {
+  /* 更小的螢幕（iPhone SE 等）縮到 70% */
+  .stage--single .id-card {
+    transform: scale(0.70);
+    margin-bottom: -177px; /* 156mm * 30% ≈ 177px */
+  }
+}
+</style>
 </head>
 <body>
 
@@ -119,9 +115,7 @@
       </div>
       <div class="single-preview-wrap" id="preview-wrap">
         <span class="bleed-hint">含 3mm 出血</span>
-        <div class="single-card-scaler" id="card-scaler">
-          <div id="card-mount"></div>
-        </div>
+        <div id="card-mount"></div>
       </div>
     </div>
   </div>
@@ -485,54 +479,6 @@ const Wrapper = () => {
 
 ReactDOM.createRoot(document.createElement('div')).render(<Wrapper />);
 // 上面用 detached div 作為 host 讓兩個 portal 都同時存活
-</script>
-
-<script>
-// === 預覽卡片自動縮放：依容器寬度計算 transform: scale，避免手機溢出 ===
-(function() {
-  function fitCard() {
-    const wrap   = document.getElementById('preview-wrap');
-    const scaler = document.getElementById('card-scaler');
-    const card   = document.querySelector('#card-mount .id-card');
-    if (!wrap || !scaler || !card) return;
-
-    // 還原 scale 才能量到原始寬度
-    scaler.style.transform = '';
-    const cardW = card.getBoundingClientRect().width;
-    const wrapW = wrap.clientWidth - 24; // 扣 padding
-    if (cardW <= 0) return;
-
-    const scale = Math.min(1, wrapW / cardW);
-    scaler.style.transform = `scale(${scale})`;
-
-    // 縮放後 transform-origin: top center，仍佔原本高度，需把容器高度收回來
-    const cardH = card.getBoundingClientRect().height; // 已是縮放後高度
-    scaler.style.height = (cardH) + 'px';
-    scaler.style.width  = (cardW * scale) + 'px';
-  }
-
-  // 監聽：載入後、視窗 resize、卡片內容變化（換班別/NPC 換背景圖時）
-  let raf;
-  function schedule() {
-    cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(fitCard);
-  }
-
-  window.addEventListener('resize', schedule);
-  window.addEventListener('load', () => {
-    setTimeout(fitCard, 100);
-    setTimeout(fitCard, 400);
-    setTimeout(fitCard, 800);
-  });
-
-  // 觀察卡片 DOM 變化（React 重新渲染時）重新計算
-  const obsTarget = document.getElementById('card-mount');
-  if (obsTarget) {
-    new MutationObserver(schedule).observe(obsTarget, {
-      childList: true, subtree: true, attributes: true,
-    });
-  }
-})();
 </script>
 
 </body>
