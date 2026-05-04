@@ -111,9 +111,23 @@ body::before {
 /* 關鍵防溢出：min-width:0 讓 grid/flex 子項不被內部固定寬度元素撐開
    （例如 .id-card 在 card-template.css 裡是 100mm ≈ 400px 固定寬度，
    會撐開 1fr 欄位導致 panel 也跟著超寬，在手機上整個爆出畫面） */
+/* 關鍵防溢出：min-width:0 讓 grid/flex 子項不被內部固定寬度元素撐開
+   （例如 .id-card 在 card-template.css 裡是 100mm ≈ 400px 固定寬度，
+   會撐開 1fr 欄位導致 panel 也跟著超寬，在手機上整個爆出畫面） */
 .wb-grid > * {
   min-width: 0;
   max-width: 100%;
+}
+
+/* 手機 / 平板：用 !important 雙重鎖死 panel 和 stage 寬度 */
+@media (max-width: 980px) {
+  .wb-grid > .panel,
+  .wb-grid > .stage {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
 }
 
 /* ========== 控制面板 ========== */
