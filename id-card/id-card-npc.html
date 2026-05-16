@@ -77,16 +77,6 @@
   gap: 10px;
   align-items: end;
 }
-/* 手機版（窄螢幕）改為垂直堆疊，讓下拉選單佔滿寬度，
-   名稱（公會長 — 朱慧容（龍崗））才能完整顯示 */
-@media (max-width: 640px) {
-  .single-card-form {
-    grid-template-columns: 1fr;
-  }
-  .single-card-form .btn {
-    width: 100%;
-  }
-}
 .single-card-select {
   font-family: var(--font-display);
   font-size: 1rem;
@@ -98,9 +88,6 @@
   color: var(--ink);
   cursor: pointer;
   width: 100%;
-  /* 讓長文字盡量擠進去（部分瀏覽器支援），避免被截斷 */
-  text-overflow: ellipsis;
-  min-width: 0;
 }
 .single-card-select:focus { outline: 3px solid var(--gold); outline-offset: 2px; }
 
@@ -155,7 +142,7 @@
 .preview-cell .id-card {
   transform: scale(0.55);
   transform-origin: top center;
-  margin: 0 auto -260px; /* 156mm * 0.55 ≈ 86mm; collapse rest */
+  margin: 0 auto -115px; /* horizontal card: collapse DOM 250→137px */
 }
 .preview-cell-label {
   margin-top: 8px;
@@ -400,7 +387,7 @@ async function bakeBatch(cards, sessionLabel, onProgress) {
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
   const pageW = 297, pageH = 210;
-  const cardW = 106, cardH = 156;
+  const cardW = 106, cardH = 66;
   const gap = 8;
   const totalW = cardW * 2 + gap;
   const startX = (pageW - totalW) / 2;
@@ -438,10 +425,10 @@ async function bakeBatch(cards, sessionLabel, onProgress) {
 // 烤單張：A4 直式置中
 async function bakeSingle(card) {
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-  const cardW = 106, cardH = 156;
-  const x = (210 - cardW) / 2;
-  const y = (297 - cardH) / 2;
+  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
+  const cardW = 106, cardH = 66;
+  const x = (297 - cardW) / 2;
+  const y = (210 - cardH) / 2;
   const canvas = await renderCardToCanvas(card);
   pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, y, cardW, cardH);
   drawCropMarks(pdf, x, y, cardW, cardH);

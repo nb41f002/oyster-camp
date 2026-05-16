@@ -37,8 +37,8 @@
 }
 .bleed-hint {
   position: absolute;
-  top: -14px;
-  left: 16px;
+  top: 8px;
+  left: 12px;
   background: var(--gold);
   color: var(--ink);
   font-family: var(--font-latin);
@@ -50,54 +50,43 @@
   border-radius: 999px;
   text-transform: uppercase;
   z-index: 2;
+  pointer-events: none;
+  opacity: 0.85;
 }
 
-/* 手機版（窄螢幕）卡片預覽縮放 — 全頁面通用樣式已移到 app.css */
+/* 手機版（窄螢幕）優化 */
 @media (max-width: 640px) {
-  /* 預覽外框：邊距收緊，並改為 overflow: visible 讓「含 3mm 出血」標籤完整露出
-     （原本的 overflow:hidden 是用來剪超寬卡片，但卡片現在用 scale 縮過已經剛好；
-     橫向溢出由 .stage 的 overflow-x:hidden 把關，不會影響整頁版面） */
+  /* 標題：中英文垂直堆疊，避免「單張識別 / 證」斷字 */
+  .wb-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .wb-title-en {
+    font-size: 0.72rem;
+  }
+
+  /* 預覽舞台：縮小邊距留更多卡片空間 */
+  .stage {
+    padding: 20px 8px;
+  }
   .single-preview-wrap {
     padding: 6px;
-    border-width: 2px;
-    overflow: visible;
-  }
-  .bleed-hint {
-    font-size: 0.6rem;
-    padding: 2px 8px;
-    top: -11px;
-    left: 10px;
-    letter-spacing: 0.10em;
   }
 
-  /* 卡片預覽縮到 78%（iPhone 12/13/14 約 390px 安全可放） */
+  /* 卡片預覽縮小到 80%，並把縮放後留白收回 */
   .stage--single .id-card {
-    transform: scale(0.78);
+    transform: scale(0.80);
     transform-origin: top center;
-    margin-bottom: -130px; /* 590px × 22% ≈ 130px 高度補償 */
+    margin-bottom: 0; /* 橫式 66mm 高度，已無需補償 */
   }
 }
 
-/* iPhone SE / 一般 4 吋機 */
-@media (max-width: 420px) {
+@media (max-width: 400px) {
+  /* 更小的螢幕（iPhone SE 等）縮到 70% */
   .stage--single .id-card {
-    transform: scale(0.72);
-    margin-bottom: -165px;
-  }
-}
-
-/* 更小螢幕（舊型 Android、緊縮畫面） */
-@media (max-width: 380px) {
-  .stage--single .id-card {
-    transform: scale(0.66);
-    margin-bottom: -200px;
-  }
-}
-
-@media (max-width: 340px) {
-  .stage--single .id-card {
-    transform: scale(0.58);
-    margin-bottom: -248px;
+    transform: scale(0.70);
+    margin-bottom: 0; /* 橫式 66mm 高度，已無需補償 */
   }
 }
 </style>
@@ -113,7 +102,7 @@
       </h1>
       <p class="wb-subtitle">輸入勇者姓名，立即下載專屬識別證</p>
     </div>
-    <a href="id-card-forge.html" class="wb-back-link">← 回主頁</a>
+    <a href="index.html" class="wb-back-link">← 回主頁</a>
   </div>
 
   <div class="wb-grid">
@@ -124,7 +113,7 @@
     <div class="stage stage--single">
       <div class="stage-header">
         <h2 class="stage-header-title">📋 即時預覽 · Live Preview</h2>
-        <span class="stage-header-meta">100 × 150 mm + 3mm bleed</span>
+        <span class="stage-header-meta">100 × 60 mm + 3mm bleed</span>
       </div>
       <div class="single-preview-wrap" id="preview-wrap">
         <span class="bleed-hint">含 3mm 出血</span>
@@ -241,7 +230,7 @@ function ControlPanel({ data, setData, onExportPDF, onExportPNG, exporting }) {
         </div>
         <div className="field">
           <label className="field-label">緊急聯絡 <span className="field-label-en">SOS</span></label>
-          <input className="input" type="text" value={data.contact} onChange={update('contact')} placeholder="0912-345-678" />
+          <input className="input" type="text" value={data.contact} onChange={update('contact')} placeholder="0912345678" />
         </div>
         <div className="field">
           <label className="field-label">QR 連結 <span className="field-label-en">QR URL</span></label>
@@ -278,7 +267,7 @@ function App() {
     npc:     'guildMaster',
     session: 'longgang',
     seat:    '01',
-    contact: '0912-345-678',
+    contact: '0912345678',
     qrUrl:   'https://nb41f002.github.io/oyster-camp/',
   });
   const [exporting, setExporting] = useState(false);
@@ -311,11 +300,11 @@ function App() {
     try {
       const { canvas, mount, root } = await renderCardToCanvas();
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-      // A4 = 210 × 297；卡片 106 × 156 含出血，置中
-      const cardW = 106, cardH = 156;
-      const x = (210 - cardW) / 2;
-      const y = (297 - cardH) / 2;
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
+      // A4 = 210 × 297；卡片 106 × 66 含出血，置中
+      const cardW = 106, cardH = 66;
+      const x = (297 - cardW) / 2;
+      const y = (210 - cardH) / 2;
       pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, y, cardW, cardH);
 
       // 加裁切標記
@@ -406,7 +395,7 @@ const Wrapper = () => {
     npc:     'guildMaster',
     session: 'longgang',
     seat:    '01',
-    contact: '0912-345-678',
+    contact: '0912345678',
     qrUrl:   'https://nb41f002.github.io/oyster-camp/',
   });
   const [exporting, setExporting] = React.useState(false);
@@ -434,10 +423,10 @@ const Wrapper = () => {
     try {
       const { canvas, mount, root } = await renderCardToCanvas();
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-      const cardW = 106, cardH = 156;
-      const x = (210 - cardW) / 2;
-      const y = (297 - cardH) / 2;
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
+      const cardW = 106, cardH = 66;
+      const x = (297 - cardW) / 2;
+      const y = (210 - cardH) / 2;
       pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, y, cardW, cardH);
       // 裁切線
       pdf.setDrawColor(47, 27, 12);

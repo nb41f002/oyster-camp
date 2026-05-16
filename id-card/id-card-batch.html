@@ -129,10 +129,10 @@ function downloadTemplate() {
   const wb = XLSX.utils.book_new();
   const data = [
     ['中文姓名', '英文名', '班別', '梯次', '座號', '緊急聯絡', '身份'],
-    ['林宥廷', 'Ethan',     '鮮蚵勇者團', '龍崗 7/6-7/10',  '07', '0912-345-678', '勇者'],
-    ['張承恩', 'Leo',       '竹筍勇者團', '龍崗 7/6-7/10',  '15', '0923-456-789', '勇者'],
-    ['陳怡安', 'Hannah',    '鮮蚵勇者團', '保西 8/17-8/21', '03', '0934-567-890', '勇者'],
-    ['吳佩珊', 'Stella',    '說書講師團', '龍崗 7/6-7/10',  '',   '0945-678-901', '老師'],
+    ['林宥廷', 'Ethan',     '鮮蚵勇者團', '龍崗 7/6-7/10',  '07', '0912345678', '勇者'],
+    ['張承恩', 'Leo',       '竹筍勇者團', '龍崗 7/6-7/10',  '15', '0923456789', '勇者'],
+    ['陳怡安', 'Hannah',    '鮮蚵勇者團', '保西 8/17-8/21', '03', '0934567890', '勇者'],
+    ['吳佩珊', 'Stella',    '說書講師團', '龍崗 7/6-7/10',  '',   '0945678901', '老師'],
   ];
   const ws = XLSX.utils.aoa_to_sheet(data);
   ws['!cols'] = [{wch:10},{wch:14},{wch:14},{wch:18},{wch:6},{wch:14},{wch:6}];
@@ -403,13 +403,13 @@ function App() {
     setProgress(0);
     try {
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
       const total = rows.length;
 
       if (layout === 'single') {
-        const cardW = 106, cardH = 156;
-        const x = (210 - cardW) / 2;
-        const y = (297 - cardH) / 2;
+        const cardW = 106, cardH = 66;
+        const x = (297 - cardW) / 2;
+        const y = (210 - cardH) / 2;
         for (let i = 0; i < total; i++) {
           if (i > 0) pdf.addPage();
           const canvas = await renderRowToCanvas(rows[i]);
@@ -424,7 +424,7 @@ function App() {
       } else {
         // 2-up：A4 一頁兩張，縮到 86×130 mm，上下排
         const cardW = 86, cardH = 130;
-        const x = (210 - cardW) / 2;
+        const x = (297 - cardW) / 2;
         const yTop = 14;
         const yBot = 297 - 14 - cardH;
         for (let i = 0; i < total; i++) {
