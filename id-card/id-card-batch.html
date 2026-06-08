@@ -397,36 +397,43 @@ function App() {
     }
   }
 
-  async function handleExportAll() {
+async function handleExportAll() {
     if (rows.length === 0) return;
     setExporting(true);
     setProgress(0);
     try {
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
+      // 💡 G哥改這裡：把 orientation 改為 'portrait' (直向 A4: 210 x 297 mm)
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
       const total = rows.length;
 
       if (layout === 'single') {
-        const cardW = 106, cardH = 66;
-        const x = (297 - cardW) / 2;
-        const y = (210 - cardH) / 2;
+        // 💡 修正 1：把原本手誤的 cardH = 66 改回正確的 156 mm
+        const cardW = 106, cardH = 156;
+        // 💡 修正 2：重新計算在直向 A4 (210 x 297) 裡面的居中坐標
+        const x = (210 - cardW) / 2;
+        const y = (297 - cardH) / 2;
+        
         for (let i = 0; i < total; i++) {
           if (i > 0) pdf.addPage();
           const canvas = await renderRowToCanvas(rows[i]);
           pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', x, y, cardW, cardH);
           drawCropMarks(pdf, x, y, cardW, cardH);
-          // 頁碼 / 識別
+          
+          // 頁碼 / 識別文字 (順移到直向紙張的底部角落)
           pdf.setFontSize(8);
           pdf.setTextColor(120);
-          pdf.text(`#${String(i+1).padStart(3,'0')} · ${rows[i].nameCn}`, 10, 290);
+          pdf.text(`#${String(i+1).padStart(3,'0')} · ${rows[i].nameCn}`, 10, 287);
           setProgress(((i + 1) / total) * 100);
         }
       } else {
-        // 2-up：A4 一頁兩張，縮到 86×130 mm，上下排
+        // 2-up：A4 一頁兩張（縮小至 86×130mm），直向上下排
         const cardW = 86, cardH = 130;
-        const x = (297 - cardW) / 2;
-        const yTop = 14;
-        const yBot = 297 - 14 - cardH;
+        // 💡 修正 3：在 210mm 寬度中居中
+        const x = (210 - cardW) / 2;
+        const yTop = 12;             // 第一張靠頂部
+        const yBot = 297 - 12 - cardH; // 第二張靠底部 (155mm 處)，中間完美留有 13mm 的完美裁切間距！
+        
         for (let i = 0; i < total; i++) {
           const slot = i % 2;
           if (i > 0 && slot === 0) pdf.addPage();
@@ -434,6 +441,8 @@ function App() {
           const y = slot === 0 ? yTop : yBot;
           pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', x, y, cardW, cardH);
           drawCropMarks(pdf, x, y, cardW, cardH);
+          
+          // 識別標籤文字
           pdf.setFontSize(7);
           pdf.setTextColor(120);
           pdf.text(`#${String(i+1).padStart(3,'0')} · ${rows[i].nameCn}`, x, y + cardH + 4);
