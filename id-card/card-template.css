@@ -434,6 +434,9 @@
 .id-card[data-npc="orderJudge"] .id-card__band--npc {
   background: linear-gradient(135deg, #5A3F28 0%, #2F1B0C 100%);
 }
+.id-card[data-npc="oysterSprite"] .id-card__band--npc {
+  background: linear-gradient(135deg, #2E9C9C 0%, #6A4C93 100%);
+}
 
 /* NPC 大頭像區 */
 .id-card__npc-portrait {
@@ -478,6 +481,7 @@
 .id-card[data-npc="marketExpert"] .npc-aura { --npc-aura-color: rgba(76, 175, 80, 0.45); }
 .id-card[data-npc="masterChef"] .npc-aura   { --npc-aura-color: rgba(199, 62, 58, 0.45); }
 .id-card[data-npc="orderJudge"] .npc-aura   { --npc-aura-color: rgba(140, 110, 80, 0.45); }
+.id-card[data-npc="oysterSprite"] .npc-aura { --npc-aura-color: rgba(120, 200, 210, 0.55); }
 
 /* 老師姓名區（比學生卡緊湊一些） */
 .id-card__name-block--npc {

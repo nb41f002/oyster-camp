@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<title>空白備用識別證 · Blank Spare Cards · 小蚵人雙語營隊</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="card-template.css">
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+/* === 空白卡專屬：中性配色（無班別色）=== */
+.id-card[data-team="blank"] {
+  --day-main:   var(--leaf);
+  --day-light:  var(--parch);
+  --day-accent: var(--gold-light);
+  --day-text:   var(--ink);
+}
+
+/* 手寫線 */
+.blank-name { gap: 4mm; }
+.blank-line--name {
+  width: 72%;
+  height: 0;
+  border-bottom: 2.5px dashed var(--ink-muted);
+  margin-top: 8mm;
+}
+.blank-line--inline {
+  display: inline-block;
+  min-width: 24mm;
+  height: 4.5mm;
+  border-bottom: 1.5px solid var(--ink-muted);
+}
+
+/* === 下載入口 === */
+.bake-hub {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+@media (max-width: 800px) { .bake-hub { grid-template-columns: 1fr; } }
+.bake-card {
+  background: var(--panel-bg);
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  padding: 20px 22px;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.bake-card--longgang { background: var(--day1-light); }
+.bake-card--baoxi    { background: var(--day2-light); }
+.bake-card-emoji { font-size: 1.8rem; margin-bottom: 4px; filter: drop-shadow(2px 2px 0 var(--ink)); }
+.bake-card-title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: var(--ink); margin: 0 0 4px; }
+.bake-card-meta  { font-family: var(--font-display); font-size: 0.85rem; color: var(--ink-light); margin: 0 0 12px; }
+.bake-card .btn  { width: 100%; }
+.bake-card .btn[disabled] { opacity: 0.6; }
+
+.pages-zone {
+  background: var(--panel-bg);
+  border: 2.5px dashed var(--ink-muted);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 26px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.pages-zone label { font-family: var(--font-display); font-weight: 700; color: var(--ink); }
+.pages-zone input {
+  width: 70px;
+  font-family: var(--font-latin);
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 8px 10px;
+  border: 2.5px solid var(--ink);
+  border-radius: 8px;
+  text-align: center;
+}
+.pages-zone .hint { font-family: var(--font-display); font-size: 0.84rem; color: var(--ink-muted); flex: 1; min-width: 180px; }
+
+.preview-section-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--leaf-deep);
+  margin: 22px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 2.5px dashed var(--ink-muted);
+}
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, max-content));
+  gap: 24px;
+  justify-content: center;
+}
+.preview-cell { text-align: center; display: flex; flex-direction: column; align-items: center; }
+.preview-cell .id-card {
+  transform: scale(0.5);
+  transform-origin: top center;
+  margin: 0 auto -297px; /* 直式卡 590px → scale .5 視覺 295px，收掉版面留白 */
+}
+.preview-cell-label {
+  margin-top: 8px; font-family: var(--font-display); font-size: 0.85rem; color: var(--ink-muted); font-weight: 600;
+}
+</style>
+</head>
+<body>
+
+<div class="workbench">
+  <div class="wb-header">
+    <div>
+      <h1 class="wb-title">📝 空白備用識別證
+        <span class="wb-title-en">Blank Spare Cards</span></h1>
+      <p class="wb-subtitle">移除姓名與組別 · 現場手寫填入 · 龍崗／保西各一頁四張</p>
+    </div>
+    <a href="id-card-forge.html" class="wb-back-link">← 回主頁</a>
+  </div>
+
+  <div class="pages-zone">
+    <label>每份頁數
+      <input id="pages-input" type="number" min="1" max="20" value="1">
+    </label>
+    <span class="hint">💡 一頁四張。需要更多備用卡就把頁數調高（或下載後用印表機印多份）。</span>
+  </div>
+
+  <div class="bake-hub">
+    <div class="bake-card bake-card--longgang">
+      <div class="bake-card-emoji">🏫</div>
+      <h2 class="bake-card-title">龍崗國小 · 7/6 – 7/10</h2>
+      <p class="bake-card-meta">空白備用卡 · A4 直式一頁四張</p>
+      <button id="lg-btn" class="btn btn--primary btn--lg">📄 下載龍崗空白卡</button>
+    </div>
+    <div class="bake-card bake-card--baoxi">
+      <div class="bake-card-emoji">🏯</div>
+      <h2 class="bake-card-title">保西國小 · 8/17 – 8/21</h2>
+      <p class="bake-card-meta">空白備用卡 · A4 直式一頁四張</p>
+      <button id="bx-btn" class="btn btn--primary btn--lg">📄 下載保西空白卡</button>
+    </div>
+  </div>
+
+  <h2 class="preview-section-title">👁 預覽 · Preview</h2>
+  <div id="blank-preview"></div>
+</div>
+
+<div class="print-canvas" id="export-canvas"></div>
+
+<script type="text/babel">
+const { useState } = React;
+
+// ====== QR ======
+function QRCanvas({ text, size = 76 }) {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    if (!ref.current || !window.QRCode || !text) return;
+    ref.current.innerHTML = '';
+    new window.QRCode(ref.current, {
+      text, width: size, height: size,
+      colorDark: '#2F1B0C', colorLight: '#FFFBEA',
+      correctLevel: window.QRCode.CorrectLevel.M
+    });
+  }, [text, size]);
+  return <div ref={ref} />;
+}
+
+const SESS = {
+  longgang: { cn: '龍崗 7/6–7/10', en: 'LONGGANG · WEEK 1', label: '龍崗' },
+  baoxi:    { cn: '保西 8/17–8/21', en: 'BAOXI · WEEK 2',    label: '保西' },
+};
+const QR_URL = 'https://nb41f002.github.io/oyster-camp/';
+
+// ====== 空白卡 ======
+function BlankCard({ session }) {
+  const s = SESS[session] || SESS.longgang;
+  return (
+    <div className="id-card id-card--blank" data-team="blank" data-role="hero" data-session={session}>
+      <div className="id-card__safe">
+        <div className="id-card__band">
+          <div className="id-card__band-left">
+            <div className="id-card__band-cn">🦪 小蚵人勇者</div>
+            <div className="id-card__band-en">LITTLE OYSTER HERO</div>
+          </div>
+          <div className="id-card__band-emoji">⚔️</div>
+        </div>
+
+        <div className="id-card__hero">
+          <div className="id-card__hero-badge">現場備用
+            <span className="id-card__hero-badge-en">ON-SITE SPARE</span>
+          </div>
+          <img className="id-card__mascot" src="assets/characters/student-bamboo-hero.png"
+               alt="勇者" crossOrigin="anonymous" />
+        </div>
+
+        <div className="id-card__name-block blank-name">
+          <div className="id-card__name-label">Hero Name · 勇者之名</div>
+          <div className="blank-line--name"></div>
+        </div>
+
+        <div className="id-card__footer">
+          <div className="id-card__info">
+            <div className="id-card__info-row">
+              <span className="id-card__info-key">Camp</span>
+              <span className="id-card__info-val">{s.cn}</span>
+            </div>
+            <div className="id-card__info-row">
+              <span className="id-card__info-key">組別</span>
+              <span className="id-card__info-val blank-line--inline"></span>
+            </div>
+            <div className="id-card__info-row">
+              <span className="id-card__info-key">座號</span>
+              <span className="id-card__info-val blank-line--inline"></span>
+            </div>
+          </div>
+          <div className="id-card__qr">
+            <QRCanvas text={QR_URL} size={76} />
+            <div className="id-card__qr-label">電子課表<br />SCHEDULE</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ====== 匯出工具（與老師卡相同的等比例置入邏輯，不變形）======
+function drawCropMarks(pdf, x, y, w, h, m = 2.5, b = 1.5) {
+  pdf.setDrawColor(47, 27, 12);
+  pdf.setLineWidth(0.2);
+  for (const cx of [x + b, x + w - b]) {
+    pdf.line(cx, y - m - b, cx, y - b);
+    pdf.line(cx, y + h + b, cx, y + h + b + m);
+  }
+  for (const cy of [y + b, y + h - b]) {
+    pdf.line(x - m - b, cy, x - b, cy);
+    pdf.line(x + w + b, cy, x + w + b + m, cy);
+  }
+}
+function placeCardContain(pdf, canvas, boxX, boxY, boxW, boxH, q = 0.92) {
+  const ar = canvas.width / canvas.height;
+  let w = boxW, h = boxW / ar;
+  if (h > boxH) { h = boxH; w = boxH * ar; }
+  const x = boxX + (boxW - w) / 2;
+  const y = boxY + (boxH - h) / 2;
+  pdf.addImage(canvas.toDataURL('image/jpeg', q), 'JPEG', x, y, w, h);
+  return { x, y, w, h };
+}
+
+async function renderBlankToCanvas(session) {
+  const exportRoot = document.getElementById('export-canvas');
+  const mount = document.createElement('div');
+  mount.style.cssText = 'background:#fff; display:inline-block;';
+  exportRoot.appendChild(mount);
+  const root = ReactDOM.createRoot(mount);
+  await new Promise(resolve => {
+    root.render(<BlankCard session={session} />);
+    setTimeout(resolve, 450);
+  });
+  const cardEl = mount.querySelector('.id-card');
+  const canvas = await html2canvas(cardEl, { scale: 3.5, backgroundColor: '#fff', useCORS: true, logging: false });
+  setTimeout(() => { try { root.unmount(); } catch (e) {} mount.remove(); }, 50);
+  return canvas;
+}
+
+// A4 直式一頁四張，可指定頁數（每頁四張相同的空白卡）
+async function bakeBlankPdf(session, pages) {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+  const pageW = 210, pageH = 297;
+  const cols = 2, rows = 2, perPage = cols * rows;
+  const margin = 10, gap = 10;
+  const cellW = (pageW - margin * 2 - gap * (cols - 1)) / cols;
+  const cellH = (pageH - margin * 2 - gap * (rows - 1)) / rows;
+  const sName = SESS[session].label;
+
+  // 同一張空白卡只渲染一次，重複貼四份 × 頁數
+  const canvas = await renderBlankToCanvas(session);
+
+  for (let p = 0; p < pages; p++) {
+    if (p > 0) pdf.addPage();
+    for (let slot = 0; slot < perPage; slot++) {
+      const col = slot % cols, row = Math.floor(slot / cols);
+      const cellX = margin + col * (cellW + gap);
+      const cellY = margin + row * (cellH + gap);
+      const r = placeCardContain(pdf, canvas, cellX, cellY, cellW, cellH, 0.92);
+      drawCropMarks(pdf, r.x, r.y, r.w, r.h);
+    }
+    pdf.setFontSize(7);
+    pdf.setTextColor(150);
+    pdf.text(
+      `小蚵人雙語營隊 · ${sName} · 空白備用卡 · 第 ${p + 1}/${pages} 頁 · A4 直式一頁四張 · 含裁切線`,
+      10, pageH - 5
+    );
+  }
+  return pdf;
+}
+
+// ====== App ======
+function App() {
+  const getPages = () => {
+    const v = parseInt(document.getElementById('pages-input').value, 10);
+    return Math.min(20, Math.max(1, isNaN(v) ? 1 : v));
+  };
+
+  React.useEffect(() => {
+    const bind = (id, session) => {
+      const btn = document.getElementById(id);
+      btn.onclick = async () => {
+        const orig = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '🔥 產生中…';
+        try {
+          const pages = getPages();
+          const pdf = await bakeBlankPdf(session, pages);
+          pdf.save(`空白備用卡_${SESS[session].label}_${pages}頁.pdf`);
+        } catch (e) {
+          console.error(e);
+          btn.textContent = '✗ 失敗：' + e.message;
+          setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2500);
+          return;
+        }
+        btn.textContent = orig;
+        btn.disabled = false;
+      };
+    };
+    bind('lg-btn', 'longgang');
+    bind('bx-btn', 'baoxi');
+  }, []);
+
+  return (
+    <div className="preview-grid">
+      <div className="preview-cell">
+        <BlankCard session="longgang" />
+        <div className="preview-cell-label">🏫 龍崗 · 空白備用卡</div>
+      </div>
+      <div className="preview-cell">
+        <BlankCard session="baoxi" />
+        <div className="preview-cell-label">🏯 保西 · 空白備用卡</div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('blank-preview')).render(<App />);
+</script>
+
+</body>
+</html>

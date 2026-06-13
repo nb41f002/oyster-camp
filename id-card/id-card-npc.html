@@ -140,9 +140,11 @@
   filter: drop-shadow(0 6px 16px rgba(0,0,0,0.18));
 }
 .preview-cell .id-card {
-  transform: scale(0.55);
+  transform: scale(0.5);
   transform-origin: top center;
-  margin: 0 auto -115px; /* horizontal card: collapse DOM 250→137px */
+  /* 直式卡 DOM 高約 590px（156mm@96dpi）；scale(0.5) 後視覺高約 295px，
+     用負邊距收掉多出的 ~295px 版面留白 */
+  margin: 0 auto -297px;
 }
 .preview-cell-label {
   margin-top: 8px;
@@ -262,7 +264,7 @@
     <div class="bake-card bake-card--longgang">
       <div class="bake-card-emoji">🏫</div>
       <h2 class="bake-card-title">龍崗國小 · 7/6 – 7/10</h2>
-      <p class="bake-card-meta"><strong id="lg-count">— 張識別證</strong> · A4 橫式 2-up</p>
+      <p class="bake-card-meta"><strong id="lg-count">— 張識別證</strong> · A4 直式 4-up（一頁四張）</p>
       <a id="lg-download" href="#" download="老師識別證_龍崗國小.pdf"
          class="btn btn--primary btn--lg" data-state="baking">🔥 準備烘烤…</a>
     </div>
@@ -270,7 +272,7 @@
     <div class="bake-card bake-card--baoxi">
       <div class="bake-card-emoji">🏯</div>
       <h2 class="bake-card-title">保西國小 · 8/17 – 8/21</h2>
-      <p class="bake-card-meta"><strong id="bx-count">— 張識別證</strong> · A4 橫式 2-up</p>
+      <p class="bake-card-meta"><strong id="bx-count">— 張識別證</strong> · A4 直式 4-up（一頁四張）</p>
       <a id="bx-download" href="#" download="老師識別證_保西國小.pdf"
          class="btn btn--primary btn--lg" data-state="baking">🔥 準備烘烤…</a>
     </div>
@@ -368,10 +370,9 @@ async function renderCardToCanvas(card) {
   return canvas;
 }
 
-function drawCropMarks(pdf, x, y, cardW, cardH) {
+function drawCropMarks(pdf, x, y, cardW, cardH, m = 4, b = 3) {
   pdf.setDrawColor(47, 27, 12);
   pdf.setLineWidth(0.2);
-  const m = 4, b = 3;
   for (const cx of [x + b, x + cardW - b]) {
     pdf.line(cx, y - m - b, cx, y - b);
     pdf.line(cx, y + cardH + b, cx, y + cardH + b + m);
@@ -382,30 +383,48 @@ function drawCropMarks(pdf, x, y, cardW, cardH) {
   }
 }
 
-// 烤一個批次（按學校）：A4 橫式 2-up
+// 等比例置入：把卡片畫到目標框內，維持原始長寬比，置中 —— 修正變形的關鍵
+// 回傳實際繪製的 {x, y, w, h}
+function placeCardContain(pdf, canvas, boxX, boxY, boxW, boxH, quality = 0.92) {
+  const ar = canvas.width / canvas.height;       // 卡片真實長寬比（106:156 直式）
+  let w = boxW, h = boxW / ar;
+  if (h > boxH) { h = boxH; w = boxH * ar; }      // 太高就改用高度為基準
+  const x = boxX + (boxW - w) / 2;
+  const y = boxY + (boxH - h) / 2;
+  pdf.addImage(canvas.toDataURL('image/jpeg', quality), 'JPEG', x, y, w, h);
+  return { x, y, w, h };
+}
+
+// 烤一個批次（按學校）：A4 直式，一頁 4 張（2 欄 × 2 列）
 async function bakeBatch(cards, sessionLabel, onProgress) {
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
-  const pageW = 297, pageH = 210;
-  const cardW = 106, cardH = 66;
-  const gap = 8;
-  const totalW = cardW * 2 + gap;
-  const startX = (pageW - totalW) / 2;
-  const y = (pageH - cardH) / 2;
+  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+  const pageW = 210, pageH = 297;
+  const cols = 2, rows = 2, perPage = cols * rows;
+  const margin = 10, gap = 10;
+  // 每個格子的尺寸（卡片會在格子內依真實比例置中，留白即裁切間隙）
+  const cellW = (pageW - margin * 2 - gap * (cols - 1)) / cols; // (210-20-10)/2 = 90mm
+  const cellH = (pageH - margin * 2 - gap * (rows - 1)) / rows; // (297-20-10)/2 = 133.5mm
 
   for (let i = 0; i < cards.length; i++) {
     onProgress?.(i + 1, cards.length);
-    const slotIdx = i % 2;
-    if (i > 0 && slotIdx === 0) pdf.addPage();
+    const slot = i % perPage;
+    if (i > 0 && slot === 0) pdf.addPage();
+    const col = slot % cols;
+    const row = Math.floor(slot / cols);
+    const cellX = margin + col * (cellW + gap);
+    const cellY = margin + row * (cellH + gap);
+
     const canvas = await renderCardToCanvas(cards[i]);
-    const x = startX + slotIdx * (cardW + gap);
-    pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', x, y, cardW, cardH);
-    drawCropMarks(pdf, x, y, cardW, cardH);
-    pdf.setFontSize(7);
+    // 等比例置入格子 —— 維持 106:156 直式比例，不再壓扁
+    const r = placeCardContain(pdf, canvas, cellX, cellY, cellW, cellH, 0.92);
+    drawCropMarks(pdf, r.x, r.y, r.w, r.h, 2.5, 1.5); // 4-up 用較小裁切標記，避免相鄰卡互相打架
+
+    pdf.setFontSize(6);
     pdf.setTextColor(120);
     pdf.text(
       `${cards[i].nameCn} · ${NPC_ROLES[cards[i].npc].cnName}`,
-      x, y + cardH + 8
+      r.x, r.y + r.h + 3.5
     );
   }
   // 頁尾
@@ -415,28 +434,27 @@ async function bakeBatch(cards, sessionLabel, onProgress) {
     pdf.setFontSize(7);
     pdf.setTextColor(150);
     pdf.text(
-      `小蚵人雙語營隊 · ${sessionLabel} · 第 ${p} / ${totalPages} 頁 · 含 3mm 出血 + 裁切線`,
-      10, pageH - 6
+      `小蚵人雙語營隊 · ${sessionLabel} · 第 ${p} / ${totalPages} 頁 · A4 直式一頁四張 · 含 3mm 出血 + 裁切線`,
+      10, pageH - 5
     );
   }
   return pdf;
 }
 
-// 烤單張：A4 直式置中
+// 烤單張：A4 直式置中（原尺寸 106×156，等比例置入不變形）
 async function bakeSingle(card) {
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
-  const cardW = 106, cardH = 66;
-  const x = (297 - cardW) / 2;
-  const y = (210 - cardH) / 2;
+  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+  const pageW = 210, pageH = 297;
   const canvas = await renderCardToCanvas(card);
-  pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, y, cardW, cardH);
-  drawCropMarks(pdf, x, y, cardW, cardH);
+  // 以原始印刷尺寸 106×156mm 為上限，依真實比例置中
+  const r = placeCardContain(pdf, canvas, (pageW - 106) / 2, (pageH - 156) / 2, 106, 156, 0.95);
+  drawCropMarks(pdf, r.x, r.y, r.w, r.h);
   pdf.setFontSize(8);
   pdf.setTextColor(120);
   pdf.text(
-    `${card.nameCn} · ${NPC_ROLES[card.npc].cnName} · ${card.session==='longgang'?'龍崗':'保西'}`,
-    10, 290
+    `${card.nameCn} · ${NPC_ROLES[card.npc].cnName} · ${card.session === 'longgang' ? '龍崗' : '保西'}`,
+    10, pageH - 8
   );
   return pdf;
 }
