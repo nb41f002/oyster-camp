@@ -74,19 +74,19 @@
     padding: 6px;
   }
 
-  /* 卡片預覽縮小到 80%，並把縮放後留白收回 */
+  /* 卡片預覽縮小到 55%，並把直式縮放後留白收回 */
   .stage--single .id-card {
-    transform: scale(0.80);
+    transform: scale(0.55);
     transform-origin: top center;
-    margin-bottom: 0; /* 橫式 66mm 高度，已無需補償 */
+    margin-bottom: -266px; /* 直式 590px @scale .55 → 收掉版面留白 */
   }
 }
 
 @media (max-width: 400px) {
-  /* 更小的螢幕（iPhone SE 等）縮到 70% */
+  /* 更小的螢幕（iPhone SE 等）縮到 45% */
   .stage--single .id-card {
-    transform: scale(0.70);
-    margin-bottom: 0; /* 橫式 66mm 高度，已無需補償 */
+    transform: scale(0.45);
+    margin-bottom: -325px;
   }
 }
 </style>
@@ -113,7 +113,7 @@
     <div class="stage stage--single">
       <div class="stage-header">
         <h2 class="stage-header-title">📋 即時預覽 · Live Preview</h2>
-        <span class="stage-header-meta">100 × 60 mm + 3mm bleed</span>
+        <span class="stage-header-meta">100 × 150 mm + 3mm bleed</span>
       </div>
       <div class="single-preview-wrap" id="preview-wrap">
         <span class="bleed-hint">含 3mm 出血</span>
@@ -258,134 +258,6 @@ function ControlPanel({ data, setData, onExportPDF, onExportPNG, exporting }) {
   );
 }
 
-function App() {
-  const [data, setData] = useState({
-    nameCn:  '林宥廷',
-    nameEn:  'Ethan',
-    team:    'oyster',
-    role:    'hero',
-    npc:     'guildMaster',
-    session: 'longgang',
-    seat:    '01',
-    contact: '0912345678',
-    qrUrl:   'https://nb41f002.github.io/oyster-camp/',
-  });
-  const [exporting, setExporting] = useState(false);
-  const previewRef = useRef(null);
-
-  // 為 PDF 匯出，把卡片渲染到隱藏 canvas，1:1 mm 尺寸
-  async function renderCardToCanvas() {
-    const exportRoot = document.getElementById('export-canvas');
-    exportRoot.innerHTML = '';
-    const mount = document.createElement('div');
-    mount.style.cssText = 'background:#fff; padding:0; display:inline-block;';
-    exportRoot.appendChild(mount);
-    const root = ReactDOM.createRoot(mount);
-    await new Promise(resolve => {
-      root.render(<IDCard data={data} />);
-      setTimeout(resolve, 400); // 等 QR 渲染
-    });
-    const cardEl = mount.querySelector('.id-card');
-    const canvas = await html2canvas(cardEl, {
-      scale: 4,           // 高解析輸出 (~ 300 dpi)
-      backgroundColor: '#ffffff',
-      useCORS: true,
-      logging: false,
-    });
-    return { canvas, mount, root };
-  }
-
-  async function handleExportPDF() {
-    setExporting(true);
-    try {
-      const { canvas, mount, root } = await renderCardToCanvas();
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
-      // A4 = 210 × 297；卡片 106 × 66 含出血，置中
-      const cardW = 106, cardH = 66;
-      const x = (297 - cardW) / 2;
-      const y = (210 - cardH) / 2;
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, y, cardW, cardH);
-
-      // 加裁切標記
-      pdf.setDrawColor(47, 27, 12);
-      pdf.setLineWidth(0.2);
-      const m = 4; // 標記長度
-      const b = 3; // 出血
-      // 4 角
-      [
-        [x + b, y],     // top-left
-        [x + cardW - b, y],
-        [x + b, y + cardH],
-        [x + cardW - b, y + cardH],
-      ].forEach(([cx, cy], i) => {
-        const top = i < 2;
-        // 垂直線（跨出血）
-        pdf.line(cx, cy + (top ? -m - b : b), cx, cy + (top ? -b : b + m));
-      });
-      [
-        [x, y + b],
-        [x + cardW, y + b],
-        [x, y + cardH - b],
-        [x + cardW, y + cardH - b],
-      ].forEach(([cx, cy], i) => {
-        const left = i % 2 === 0;
-        pdf.line(cx + (left ? -m - b : b), cy, cx + (left ? -b : b + m), cy);
-      });
-
-      const fname = `識別證_${data.nameCn || 'card'}.pdf`;
-      pdf.save(fname);
-
-      // cleanup
-      setTimeout(() => { try { root.unmount(); } catch(e){} mount.remove(); }, 200);
-    } catch (e) {
-      console.error(e);
-      alert('產生 PDF 失敗：' + e.message);
-    } finally {
-      setExporting(false);
-    }
-  }
-
-  async function handleExportPNG() {
-    setExporting(true);
-    try {
-      const { canvas, mount, root } = await renderCardToCanvas();
-      canvas.toBlob((blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `識別證_${data.nameCn || 'card'}.png`;
-        a.click();
-        URL.revokeObjectURL(url);
-      });
-      setTimeout(() => { try { root.unmount(); } catch(e){} mount.remove(); }, 200);
-    } catch (e) {
-      console.error(e);
-      alert('產生 PNG 失敗：' + e.message);
-    } finally {
-      setExporting(false);
-    }
-  }
-
-  return (
-    <>
-      <ControlPanel data={data} setData={setData}
-        onExportPDF={handleExportPDF}
-        onExportPNG={handleExportPNG}
-        exporting={exporting} />
-    </>
-  );
-}
-
-// 控制面板掛載
-const panelRoot = ReactDOM.createRoot(document.getElementById('control-panel'));
-const cardRoot  = ReactDOM.createRoot(document.getElementById('card-mount'));
-
-// 由於 React state 在 App 內，我們需要把卡片預覽也用同一個 state。
-// 改寫成單一 root，把控制面板與預覽都包進來
-panelRoot.unmount();
-cardRoot.unmount();
-
 const Wrapper = () => {
   const [data, setData] = React.useState({
     nameCn:  '林宥廷',
@@ -423,24 +295,27 @@ const Wrapper = () => {
     try {
       const { canvas, mount, root } = await renderCardToCanvas();
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
-      const cardW = 106, cardH = 66;
-      const x = (297 - cardW) / 2;
-      const y = (210 - cardH) / 2;
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, y, cardW, cardH);
+      // A4 直式，與「一頁四張」同尺寸（約 90×132mm），置中 —— 全部識別證一致大小
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+      const pageW = 210, pageH = 297;
+      const boxW = (pageW - 20 - 10) / 2;  // 90mm
+      const boxH = (pageH - 20 - 10) / 2;  // 133.5mm
+      const ar = canvas.width / canvas.height;
+      let w = boxW, h = boxW / ar;
+      if (h > boxH) { h = boxH; w = boxH * ar; }
+      const x = (pageW - w) / 2, y = (pageH - h) / 2;
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, y, w, h);
       // 裁切線
       pdf.setDrawColor(47, 27, 12);
       pdf.setLineWidth(0.2);
-      const m = 4, b = 3;
-      // 垂直裁切標記
-      for (const cx of [x + b, x + cardW - b]) {
+      const m = 2.5, b = 1.5;
+      for (const cx of [x + b, x + w - b]) {
         pdf.line(cx, y - m - b, cx, y - b);
-        pdf.line(cx, y + cardH + b, cx, y + cardH + b + m);
+        pdf.line(cx, y + h + b, cx, y + h + b + m);
       }
-      // 水平裁切標記
-      for (const cy of [y + b, y + cardH - b]) {
+      for (const cy of [y + b, y + h - b]) {
         pdf.line(x - m - b, cy, x - b, cy);
-        pdf.line(x + cardW + b, cy, x + cardW + b + m, cy);
+        pdf.line(x + w + b, cy, x + w + b + m, cy);
       }
       pdf.save(`識別證_${data.nameCn || 'card'}.pdf`);
       setTimeout(() => { try { root.unmount(); } catch(e){} mount.remove(); }, 200);

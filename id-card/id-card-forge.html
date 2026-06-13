@@ -78,7 +78,7 @@
 /* === 兩張英雄卡 === */
 .hub-options {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 22px;
   margin-top: 50px;
   text-align: left;
@@ -125,6 +125,7 @@
 .hub-card--single  { --accent: var(--day3-accent); }
 .hub-card--batch   { --accent: var(--day1-accent); }
 .hub-card--teacher { --accent: var(--day4-accent); }
+.hub-card--blank   { --accent: var(--day2-accent); }
 
 .hub-card-emoji {
   font-size: 2.6rem;
@@ -412,7 +413,7 @@
       <ul class="hub-card-features">
         <li>支援 Excel（.xlsx）/ .csv</li>
         <li>提供範本下載，欄位自動辨識</li>
-        <li>A4 一頁一張或一頁兩張可選</li>
+        <li>A4 一頁四張（與所有卡統一尺寸）</li>
       </ul>
       <span class="hub-card-cta">上傳 Excel →</span>
     </a>
@@ -432,6 +433,23 @@
         <li>一鍵打包全部老師 PDF</li>
       </ul>
       <span class="hub-card-cta">查看老師卡 →</span>
+    </a>
+
+    <a href="id-card-blank.html" class="hub-card hub-card--blank">
+      <div class="hub-card-emoji">📝</div>
+      <h2 class="hub-card-title">
+        空白備用卡
+        <span class="hub-card-title-en">Blank Spare</span>
+      </h2>
+      <p class="hub-card-desc">
+        現場備用！移除姓名與組別的空白學生卡，可手寫，臨時報到也不怕。
+      </p>
+      <ul class="hub-card-features">
+        <li>無姓名、無班別 · 現場手寫</li>
+        <li>保留梯次與課表 QR</li>
+        <li>A4 直式一頁四張</li>
+      </ul>
+      <span class="hub-card-cta">做空白卡 →</span>
     </a>
   </div>
 
