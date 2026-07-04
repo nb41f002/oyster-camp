@@ -36,6 +36,15 @@ header{position:sticky;top:0;z-index:30;background:var(--navy);color:#fff;paddin
 .day{flex:0 0 auto;min-width:104px;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:8px 11px;cursor:pointer;color:var(--ink)}
 .day.on{border-color:var(--oyst);box-shadow:0 3px 0 var(--oyst)}
 .day .dn{font-size:.62rem;color:var(--muted)} .day .dt{font-weight:800;font-size:.86rem;margin-top:1px}
+.day.storm{border-style:dashed;border-color:#c0564f}
+.day.storm .dt{color:#c0564f}
+.day.storm.on{border-color:#c0564f;box-shadow:0 3px 0 #c0564f}
+.storm-banner{background:#fdf1ef;border:1.5px dashed #c0564f;border-radius:14px;padding:11px 14px;margin:12px 0;color:#7a2d28;font-size:.86rem;line-height:1.6}
+body.dark .storm-banner{background:#3a2422;color:#f0c0ba;border-color:#a05048}
+.storm-banner b{display:block;font-size:.95rem;margin-bottom:4px}
+.cnote{background:#fff6e8;border:1px solid var(--gold);border-radius:12px;padding:9px 12px;margin:8px 0;font-size:.88rem;line-height:1.6;color:#7a5511}
+body.dark .cnote{background:#33301f;color:#e7c88a}
+.pdiv{text-align:center;font-size:.74rem;font-weight:800;color:var(--muted);margin:14px 0 6px;letter-spacing:.08em}
 .bar{display:flex;align-items:center;gap:8px;margin:8px 0 4px;flex-wrap:wrap}
 .prog{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden;min-width:110px}
 .prog>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--bamboo),var(--gold));transition:width .3s}
@@ -260,7 +269,8 @@ function render(){
  $('#days').innerHTML=[1,2,3,4,5].map(n=>{
    const nm=(D.tc[String(n)]||[])[1]||'';
    return `<div class="day${n===st.day?' on':''}" data-day="${n}"><div class="dn">Day ${n}</div><div class="dt">${nm||('第'+n+'天')}</div></div>`;
- }).join('');
+ }).join('')+`<div class="day storm${st.day==='C'?' on':''}" data-day="C"><div class="dn">7/9（四）</div><div class="dt">🌀 颱風備案</div></div>`;
+ if(st.day==='C'){ renderCont(); return; }
  const isLow=st.track.endsWith('_low');
  let slots;
  if(MODE==='all'){
@@ -272,6 +282,45 @@ function render(){
    const teacher = MODE==='all' ? (D.assign[st.track][sl]||'—') : D.me;
    return slotCard(sl,{teacher,isLow});
  }).join('') || '<p class="hint">今天沒有你授課的節次。</p>';
+ const f=$('#list .card'); if(f) f.classList.add('open');
+ allOpen=false; $('#expand').textContent='全部展開';
+ updateProg();
+}
+function contCard(s, isLow){
+ const teacher = MODE==='personal' ? D.me : (isLow ? s.low : s.high);
+ const dim = (MODE==='all' && st.teacher && teacher!==st.teacher);
+ const hit = (MODE==='all' && st.teacher && teacher===st.teacher);
+ const L=D.lessons[s.lesson];
+ const id='C:'+(MODE==='all'?st.track+':':'p:')+s.p;
+ let body=`<div class="cnote">⏱ 濃縮要點：${s.note}</div>`;
+ if(L.deck_note) body+=`<div class="dnote">${L.deck_note}</div>`;
+ for(const part of s.parts){
+   body+=`<div class="pdiv">── 原第${part===1?'一':'二'}節內容 ──</div>`;
+   const fh=flowHTML(s.lesson, part, isLow);
+   if(fh) body+=fh;
+   else body+=((L.acts||[]).filter(a=>a.part===part)).map(actHTML).join('');
+ }
+ return `<div class="card${MODE==='personal'||teacher===D.me?' mine':''}${dim?' dim':''}" data-id="${id}">
+  <div class="chead"><span class="slotno">節${s.p} ${D.times[s.p-1]}</span>
+   <span class="ctitle">${s.theme}<small>${L.title} · ${L.en}</small></span>
+   <span class="tbadge${hit?' hit':''}">授課：${teacher}</span>
+   <span class="caret">▶</span><div class="chk ${done[id]?'done':''}" data-chk="${id}">✓</div></div>
+  <div class="cbody">${body}</div></div>`;
+}
+function renderCont(){
+ const C=D.cont;
+ if(MODE==='all'){
+   $('#htitle').innerHTML=`全員備課練習台 <small>🌀 颱風備案</small>`;
+   $('#hsub').textContent='🌀 '+C.title;
+ }else{
+   $('#htitle').innerHTML=`葉容辰 · 教學提詞台 <small>🌀 颱風備案</small>`;
+   $('#hsub').textContent='🌀 '+C.title;
+ }
+ const isLow = MODE==='all' ? st.track.endsWith('_low') : false;
+ let slots=C.slots;
+ if(MODE==='personal') slots=slots.filter(s=>s.high===D.me);
+ const banner=`<div class="storm-banner"><b>${C.scope}</b>`+C.notes.map(n=>'・'+n).join('<br>')+`</div>`;
+ $('#list').innerHTML=banner+slots.map(s=>contCard(s,isLow)).join('');
  const f=$('#list .card'); if(f) f.classList.add('open');
  allOpen=false; $('#expand').textContent='全部展開';
  updateProg();
@@ -309,7 +358,8 @@ const topBtn=$('#topBtn');
 window.addEventListener('scroll',()=>{topBtn.classList.toggle('show',window.scrollY>500);},{passive:true});
 topBtn.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
 $('#days').addEventListener('click',e=>{const c=e.target.closest('[data-day]');if(!c)return;
- st.day=+c.dataset.day;window.scrollTo({top:0,behavior:'smooth'});render();});
+ st.day = c.dataset.day==='C' ? 'C' : +c.dataset.day;
+ window.scrollTo({top:0,behavior:'smooth'});render();});
 $('#list').addEventListener('click',e=>{
  const chk=e.target.closest('[data-chk]');
  if(chk){e.stopPropagation();const id=chk.dataset.chk;done[id]=!done[id];if(!done[id])delete done[id];
