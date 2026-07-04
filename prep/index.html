@@ -23,7 +23,16 @@ header{position:sticky;top:0;z-index:30;background:var(--navy);color:#fff;paddin
 .chip{flex:0 0 auto;background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:6px 12px;font-size:.78rem;font-weight:700;cursor:pointer;color:var(--ink);white-space:nowrap}
 .chip.on{border-color:var(--oyst);background:var(--oyst);color:#fff}
 .chip.t-on{border-color:var(--bamboo);background:var(--bamboo);color:#fff}
-.days{display:flex;gap:8px;overflow-x:auto;padding:8px 0 2px}
+.ctrl{margin:10px 0 0}
+.segrow{display:flex;gap:8px;flex-wrap:wrap}
+.seg{display:flex;flex:1;min-width:186px;background:var(--card);border:1.5px solid var(--line);border-radius:12px;overflow:hidden}
+.seg b{flex:1;text-align:center;padding:8px 4px;font-size:.82rem;font-weight:800;cursor:pointer;color:var(--muted);white-space:nowrap}
+.seg b small{display:block;font-weight:600;font-size:.6rem;opacity:.75;margin-top:1px}
+.seg b.on{background:var(--oyst);color:#fff}
+.seg b.on small{opacity:.9}
+#segClass b.on{background:var(--bamboo)}
+.tsel{width:100%;margin-top:8px;padding:10px 12px;font-size:.92rem;font-weight:700;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-family:inherit;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 20px) 55%,calc(100% - 14px) 55%;background-size:6px 6px;background-repeat:no-repeat}
+.days{display:flex;gap:8px;overflow-x:auto;padding:8px 0 6px;position:sticky;z-index:25;background:var(--bg);top:0}
 .day{flex:0 0 auto;min-width:104px;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:8px 11px;cursor:pointer;color:var(--ink)}
 .day.on{border-color:var(--oyst);box-shadow:0 3px 0 var(--oyst)}
 .day .dn{font-size:.62rem;color:var(--muted)} .day .dt{font-weight:800;font-size:.86rem;margin-top:1px}
@@ -95,6 +104,8 @@ body.dark .steph{color:#e7c88a}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .grid img{width:100%;border-radius:8px;border:1px solid var(--line);cursor:zoom-in;aspect-ratio:16/9;object-fit:cover;background:#ddd}
 .fab{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:40;background:var(--navy);color:#fff;border:none;border-radius:16px;padding:13px 16px;font-weight:800;font-size:.9rem;box-shadow:0 6px 18px rgba(0,0,0,.28);cursor:pointer}
+.fab.top{bottom:calc(86px + env(safe-area-inset-bottom));padding:12px 14px;background:var(--oyst);display:none}
+.fab.top.show{display:block}
 .ov{position:fixed;inset:0;z-index:50;background:rgba(8,18,22,.82);display:none;align-items:center;justify-content:center;padding:18px}
 .ov.on{display:flex}
 .ovbox{background:var(--card);border-radius:18px;max-width:520px;width:100%;padding:16px;max-height:90vh;overflow:auto}
@@ -119,8 +130,13 @@ footer{text-align:center;color:var(--muted);font-size:.7rem;margin-top:20px}
 </div></header>
 
 <div class="wrap">
- <div class="chips" id="trackChips" style="display:none"></div>
- <div class="chips" id="teacherChips" style="display:none"></div>
+ <div class="ctrl" id="ctrlAll" style="display:none">
+  <div class="segrow">
+   <div class="seg" id="segWeek"></div>
+   <div class="seg" id="segClass"></div>
+  </div>
+  <select class="tsel" id="teacherSel"></select>
+ </div>
  <div class="days" id="days"></div>
  <div class="bar">
   <button class="btn" id="expand">全部展開</button>
@@ -132,6 +148,7 @@ footer{text-align:center;color:var(--muted);font-size:.7rem;margin-top:20px}
  <footer id="foot"></footer>
 </div>
 
+<button class="fab top" id="topBtn" title="回到最上面">⬆︎ 回頂</button>
 <button class="fab" id="fab">📣 四大口令</button>
 <div class="ov" id="ov"><div class="ovbox">
  <button class="close" onclick="document.getElementById('ov').classList.remove('on')">關閉</button>
@@ -268,15 +285,29 @@ function updateProg(){
 }
 
 if(MODE==='all'){
- const tc=$('#trackChips'); tc.style.display='flex';
- tc.innerHTML=D.tracks.map(t=>`<div class="chip${t===st.track?' on':''}" data-track="${t}">${D.labels[t].replace('🏫 ','')}</div>`).join('');
- tc.addEventListener('click',e=>{const c=e.target.closest('[data-track]');if(!c)return;
-   st.track=c.dataset.track;[...tc.children].forEach(x=>x.classList.toggle('on',x.dataset.track===st.track));render();});
- const th=$('#teacherChips'); th.style.display='flex';
- th.innerHTML=`<div class="chip t-on" data-t="">全部老師</div>`+D.teachers.map(t=>`<div class="chip" data-t="${t}">${t}${D.roles[t]?'・'+D.roles[t]:''}</div>`).join('');
- th.addEventListener('click',e=>{const c=e.target.closest('[data-t]');if(!c)return;
-   st.teacher=c.dataset.t;[...th.children].forEach(x=>x.classList.toggle('t-on',x.dataset.t===st.teacher));render();});
+ $('#ctrlAll').style.display='block';
+ const weeks=[['longgang','龍崗週','7/6 – 7/10'],['baoshi','保西週','8/17 – 8/21']];
+ const cls=[['low','🐚 中低年級班'],['high','🎋 高年級班']];
+ const segW=$('#segWeek'), segC=$('#segClass');
+ segW.innerHTML=weeks.map(w=>`<b data-w="${w[0]}" class="${st.track.startsWith(w[0])?'on':''}">${w[1]}<small>${w[2]}</small></b>`).join('');
+ segC.innerHTML=cls.map(c=>`<b data-c="${c[0]}" class="${st.track.endsWith(c[0])?'on':''}">${c[1]}</b>`).join('');
+ const setTrack=()=>{st.track=segW.querySelector('.on').dataset.w+'_'+segC.querySelector('.on').dataset.c;render();};
+ segW.addEventListener('click',e=>{const b=e.target.closest('[data-w]');if(!b)return;
+   [...segW.children].forEach(x=>x.classList.toggle('on',x===b));setTrack();});
+ segC.addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(!b)return;
+   [...segC.children].forEach(x=>x.classList.toggle('on',x===b));setTrack();});
+ const sel=$('#teacherSel');
+ sel.innerHTML='<option value="">👥 全部老師（可選一位只看其節次）</option>'+D.teachers.map(t=>`<option value="${t}">${t}${D.roles[t]?'・'+D.roles[t]:''}</option>`).join('');
+ sel.addEventListener('change',()=>{st.teacher=sel.value;render();});
 }
+/* 吸頂 Day 列：貼齊 header 下緣 */
+const _hd=document.querySelector('header'), _days=$('#days');
+const setSticky=()=>{_days.style.top=(_hd.offsetHeight-1)+'px';};
+setSticky(); window.addEventListener('resize',setSticky);
+/* 回頂按鈕 */
+const topBtn=$('#topBtn');
+window.addEventListener('scroll',()=>{topBtn.classList.toggle('show',window.scrollY>500);},{passive:true});
+topBtn.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
 $('#days').addEventListener('click',e=>{const c=e.target.closest('[data-day]');if(!c)return;
  st.day=+c.dataset.day;window.scrollTo({top:0,behavior:'smooth'});render();});
 $('#list').addEventListener('click',e=>{
