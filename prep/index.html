@@ -39,8 +39,12 @@ header{position:sticky;top:0;z-index:30;background:var(--navy);color:#fff;paddin
 .day.storm{border-style:dashed;border-color:#c0564f}
 .day.storm .dt{color:#c0564f}
 .day.storm.on{border-color:#c0564f;box-shadow:0 3px 0 #c0564f}
+.plabel{margin:16px 2px 6px;font-size:.82rem;font-weight:800;color:var(--navy);border-left:4px solid var(--oyst);padding-left:8px}
+body.dark .plabel{color:#e7c88a}
 .storm-banner{background:#fdf1ef;border:1.5px dashed #c0564f;border-radius:14px;padding:11px 14px;margin:12px 0;color:#7a2d28;font-size:.86rem;line-height:1.6}
-body.dark .storm-banner{background:#3a2422;color:#f0c0ba;border-color:#a05048}
+body.dark .plabel{margin:16px 2px 6px;font-size:.82rem;font-weight:800;color:var(--navy);border-left:4px solid var(--oyst);padding-left:8px}
+body.dark .plabel{color:#e7c88a}
+.storm-banner{background:#3a2422;color:#f0c0ba;border-color:#a05048}
 .storm-banner b{display:block;font-size:.95rem;margin-bottom:4px}
 .cnote{background:#fff6e8;border:1px solid var(--gold);border-radius:12px;padding:9px 12px;margin:8px 0;font-size:.88rem;line-height:1.6;color:#7a5511}
 body.dark .cnote{background:#33301f;color:#e7c88a}
@@ -201,7 +205,8 @@ function flowHTML(lk, part, isLow){
  let n=0;
  return '<div class="sec">🎬 逐頁提詞（照簡報順序：每頁＝這頁要講的話）</div>'+entries.map(e=>{
   if(e.img){n++;return `<div class="pg"><div class="pgh"><span class="pno">P${n}</span>${e.h}</div><img class="pgimg" loading="lazy" src="${IMG[e.img]}" alt="">`+e.L.map(lineHTML).join('')+`</div>`;}
-  return `<div class="pg grp"><div class="pgh">📦 ${e.group}</div><div class="grpimgs">`+e.imgs.map(k=>`<img loading="lazy" src="${IMG[k]}" alt="">`).join('')+`</div>`+e.L.map(lineHTML).join('')+`</div>`;
+  if(e.group){return `<div class="pg grp"><div class="pgh">📦 ${e.group}</div><div class="grpimgs">`+e.imgs.map(k=>`<img loading="lazy" src="${IMG[k]}" alt="">`).join('')+`</div>`+e.L.map(lineHTML).join('')+`</div>`;}
+  return `<div class="pg"><div class="pgh"><span class="pno" style="background:var(--bamboo)">段</span>${e.h}</div>`+e.L.map(lineHTML).join('')+`</div>`;
  }).join('');
 }
 function galleryHTML(lk){
@@ -286,41 +291,45 @@ function render(){
  allOpen=false; $('#expand').textContent='全部展開';
  updateProg();
 }
-function contCard(s, isLow){
+function contCard(s, isLow, dayIdx){
  const teacher = MODE==='personal' ? D.me : (isLow ? s.low : s.high);
- const dim = (MODE==='all' && st.teacher && teacher!==st.teacher);
- const hit = (MODE==='all' && st.teacher && teacher===st.teacher);
- const L=D.lessons[s.lesson];
- const id='C:'+(MODE==='all'?st.track+':':'p:')+s.p;
+ const dispT = isLow ? s.low : s.high;
+ const dim = (MODE==='all' && st.teacher && !dispT.includes(st.teacher));
+ const hit = (MODE==='all' && st.teacher && dispT.includes(st.teacher));
+ const id='C'+dayIdx+':'+(MODE==='all'?st.track.split('_')[1]+':':'p:')+s.p;
  let body=`<div class="cnote">⏱ 濃縮要點：${s.note}</div>`;
- if(L.deck_note) body+=`<div class="dnote">${L.deck_note}</div>`;
- for(const part of s.parts){
-   body+=`<div class="pdiv">── 原第${part===1?'一':'二'}節內容 ──</div>`;
-   const fh=flowHTML(s.lesson, part, isLow);
+ const seen=new Set();
+ for(const [lk,part] of s.blocks){
+   const L=D.lessons[lk];
+   if(L.deck_note && !seen.has(lk)){ body+=`<div class="dnote">${L.deck_note}</div>`; seen.add(lk); }
+   body+=`<div class="pdiv">── ${L.title}・原第${part===1?'一':'二'}節 ──</div>`;
+   const fh=flowHTML(lk, part, isLow);
    if(fh) body+=fh;
    else body+=((L.acts||[]).filter(a=>a.part===part)).map(actHTML).join('');
  }
- return `<div class="card${MODE==='personal'||teacher===D.me?' mine':''}${dim?' dim':''}" data-id="${id}">
-  <div class="chead"><span class="slotno">節${s.p} ${D.times[s.p-1]}</span>
-   <span class="ctitle">${s.theme}<small>${L.title} · ${L.en}</small></span>
-   <span class="tbadge${hit?' hit':''}">授課：${teacher}</span>
+ const subt=s.blocks.map(b=>D.lessons[b[0]].title).filter((v,i,a)=>a.indexOf(v)===i).join('＋');
+ return `<div class="card${dispT.includes(D.me)?' mine':''}${dim?' dim':''}" data-id="${id}">
+  <div class="chead"><span class="slotno">${s.p} ${s.time}</span>
+   <span class="ctitle">${s.theme}<small>${subt}</small></span>
+   <span class="tbadge${hit?' hit':''}">授課：${dispT}</span>
    <span class="caret">▶</span><div class="chk ${done[id]?'done':''}" data-chk="${id}">✓</div></div>
   <div class="cbody">${body}</div></div>`;
 }
 function renderCont(){
  const C=D.cont;
- if(MODE==='all'){
-   $('#htitle').innerHTML=`全員備課練習台 <small>🌀 颱風備案</small>`;
-   $('#hsub').textContent='🌀 '+C.title;
- }else{
-   $('#htitle').innerHTML=`葉容辰 · 教學提詞台 <small>🌀 颱風備案</small>`;
-   $('#hsub').textContent='🌀 '+C.title;
- }
+ $('#htitle').innerHTML=(MODE==='all'?'全員備課練習台':'葉容辰 · 教學提詞台')+` <small>🌀 颱風備案</small>`;
+ $('#hsub').textContent='🌀 '+C.title;
  const isLow = MODE==='all' ? st.track.endsWith('_low') : false;
- let slots=C.slots;
- if(MODE==='personal') slots=slots.filter(s=>s.high===D.me);
  const banner=`<div class="storm-banner"><b>${C.scope}</b>`+C.notes.map(n=>'・'+n).join('<br>')+`</div>`;
- $('#list').innerHTML=banner+slots.map(s=>contCard(s,isLow)).join('');
+ let html=banner;
+ C.days.forEach((d,di)=>{
+   let slots=d.slots;
+   if(MODE==='personal') slots=slots.filter(s=>s.high.includes(D.me));
+   if(!slots.length) return;
+   html+=`<div class="plabel" style="border-left-color:#c0564f">🗓 ${d.label}</div>`;
+   html+=slots.map(s=>contCard(s,isLow,di)).join('');
+ });
+ $('#list').innerHTML=html;
  const f=$('#list .card'); if(f) f.classList.add('open');
  allOpen=false; $('#expand').textContent='全部展開';
  updateProg();
