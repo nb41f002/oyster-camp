@@ -299,10 +299,11 @@ function contCard(s, isLow, dayIdx){
  const id='C'+dayIdx+':'+(MODE==='all'?st.track.split('_')[1]+':':'p:')+s.p;
  let body=`<div class="cnote">⏱ 濃縮要點：${s.note}</div>`;
  const seen=new Set();
- for(const [lk,part] of s.blocks){
+ for(const blk of s.blocks){
+   const [lk,part]=blk; const custom=blk[2];
    const L=D.lessons[lk];
    if(L.deck_note && !seen.has(lk)){ body+=`<div class="dnote">${L.deck_note}</div>`; seen.add(lk); }
-   body+=`<div class="pdiv">── ${L.title}・原第${part===1?'一':'二'}節 ──</div>`;
+   body+=`<div class="pdiv">── ${custom||(L.title+'・原第'+(part===1?'一':'二')+'節')} ──</div>`;
    const fh=flowHTML(lk, part, isLow);
    if(fh) body+=fh;
    else body+=((L.acts||[]).filter(a=>a.part===part)).map(actHTML).join('');
@@ -324,8 +325,6 @@ function renderCont(){
  let html=banner;
  C.days.forEach((d,di)=>{
    let slots=d.slots;
-   if(MODE==='personal') slots=slots.filter(s=>s.high.includes(D.me));
-   if(!slots.length) return;
    html+=`<div class="plabel" style="border-left-color:#c0564f">🗓 ${d.label}</div>`;
    html+=slots.map(s=>contCard(s,isLow,di)).join('');
  });
