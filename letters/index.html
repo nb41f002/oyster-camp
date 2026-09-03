@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="../favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta name="theme-color" content="#0e3a5c">
 <title>小蚵人的瓶中信 🦪</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
@@ -107,7 +111,8 @@ button.ghost{
 .desk .paper-wrap{flex:1;display:flex;align-items:center;justify-content:center}
 .desk .seal-stage{flex:1 0 auto;display:flex;flex-direction:column;justify-content:center}
 .desk .reply-wrap{flex:1 0 auto;display:flex;flex-direction:column}
-.desk .reply-card{flex:1 0 auto}
+/* 內容比信件矮的時候垂直置中，不要把空白全留在下面 */
+.desk .reply-card{flex:1 0 auto;display:flex;flex-direction:column;justify-content:center}
 .desk.solo{max-width:600px;margin-inline:auto}
 .desk.solo .side-right{animation:unfoldIn .6s cubic-bezier(.2,.8,.3,1) both}
 @keyframes unfoldIn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
@@ -316,10 +321,12 @@ footer{margin-top:36px;text-align:center;color:rgba(255,255,255,.75);font-size:1
         <div class="reply-wrap hidden" id="reply-panel">
           <span class="section-tag">小蚵人的回信</span>
           <div class="reply-card" id="reply-card">
-            <div id="reply-body"></div>
-            <p class="en" id="reply-en"></p>
-            <p class="sig">—— 小蚵人 Little Oyster 🦪
-              <small>2026 年 8 月 31 日・寫於外海蚵棚</small></p>
+            <div id="reply-inner">
+              <div id="reply-body"></div>
+              <p class="en" id="reply-en"></p>
+              <p class="sig">—— 小蚵人 Little Oyster 🦪
+                <small>2026 年 8 月 31 日・寫於外海蚵棚</small></p>
+            </div>
           </div>
         </div>
       </div>
@@ -547,12 +554,36 @@ footer{margin-top:36px;text-align:center;color:rgba(255,255,255,.75);font-size:1
 
   // 拆封：蠟封裂開 → 信紙攤開 → 一行一行浮現 → 光暈掃過 → 結業紀念升起
   let cracking=false;
+  // 電腦版：回信欄跟信件等高，內容若偏短就把字適度放大填滿，但有上限免得難讀
+  function fitReply(){
+    const card=$('reply-card'), inner=$('reply-inner');
+    if(!card||!inner) return;
+    card.style.fontSize='';
+    if(window.matchMedia('(max-width:760px)').matches) return;   // 手機不動
+    if($('letter-panel').style.display==='none') return;          // 沒有信就不用對齊
+    const bpmf=card.classList.contains('bpmf');
+    const base=bpmf?19:16.5, max=bpmf?24:21.5;
+    const room=()=>card.clientHeight
+      -parseFloat(getComputedStyle(card).paddingTop)
+      -parseFloat(getComputedStyle(card).paddingBottom);
+    let best=base;
+    for(let s=base; s<=max; s+=0.5){
+      card.style.fontSize=s+'px';
+      if(inner.offsetHeight > room()-6) break;
+      best=s;
+    }
+    card.style.fontSize=best+'px';
+  }
+  window.addEventListener('resize', ()=>{ if(!$('reply-panel').classList.contains('hidden')) fitReply(); });
+  $('letter-img').addEventListener('load', ()=>{ if(!$('reply-panel').classList.contains('hidden')) fitReply(); });
+
   $('seal-btn').addEventListener('click',()=>{
     if(cracking) return; cracking=true;
     $('seal-row').classList.add('cracking');
     setTimeout(()=>{
       $('seal-row').classList.add('hidden');
       $('reply-panel').classList.remove('hidden');
+      fitReply();
       // 逐行浮現
       const lines=$('reply-card').querySelectorAll('p');
       lines.forEach((p,i)=>{ p.style.animationDelay=(0.28+i*0.16)+'s'; });
