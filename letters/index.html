@@ -86,9 +86,31 @@ button.ghost{
 .choice-btns .surname{display:block;font-size:34px;font-weight:700;color:var(--gold-d);line-height:1.2}
 .choice-btns .cname{display:block;font-size:15px;color:#8a744a;margin-top:4px}
 /* 瓶子動畫 */
-.bottle-stage{text-align:center;padding:30px 0 10px;position:relative}
-.bottle{font-size:88px;display:inline-block;animation:bob 2.4s ease-in-out infinite;cursor:pointer;filter:drop-shadow(0 8px 10px rgba(0,25,45,.35));transition:transform .1s}
+.bottle-stage{text-align:center;padding:34px 0 10px;position:relative;min-height:52vh}
+.bottle-wrap{position:relative;display:inline-block;padding:40px 60px}
+/* 瓶子後方的光暈 */
+.bottle-wrap .glow{position:absolute;left:50%;top:50%;width:230px;height:230px;transform:translate(-50%,-50%);
+  border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,240,190,.45),rgba(255,220,150,.14) 45%,transparent 68%);
+  animation:breathe2 3s ease-in-out infinite}
+@keyframes breathe2{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.75}
+  50%{transform:translate(-50%,-50%) scale(1.16);opacity:1}}
+/* 水面漣漪 */
+.bottle-wrap .ripple{position:absolute;left:50%;top:62%;width:120px;height:34px;transform:translate(-50%,-50%);
+  border:2px solid rgba(255,255,255,.45);border-radius:50%;pointer-events:none;animation:ripple 3s ease-out infinite}
+.bottle-wrap .r2{animation-delay:1s}
+.bottle-wrap .r3{animation-delay:2s}
+@keyframes ripple{from{transform:translate(-50%,-50%) scale(.5);opacity:.85}
+  to{transform:translate(-50%,-50%) scale(2.4);opacity:0}}
+.bottle{font-size:112px;display:inline-block;position:relative;z-index:2;
+  animation:bob 2.4s ease-in-out infinite;cursor:pointer;
+  filter:drop-shadow(0 10px 14px rgba(0,25,45,.45));transition:transform .1s}
 .bottle:hover{transform:scale(1.08)}
+/* 底部海浪 */
+.wave{position:absolute;left:-10vw;right:-10vw;bottom:-10px;height:120px;pointer-events:none;
+  background:radial-gradient(ellipse 52% 100% at 50% 100%, rgba(255,255,255,.16), transparent 70%);
+  animation:waveMove 6s ease-in-out infinite}
+@keyframes waveMove{0%,100%{transform:translateX(-14px)}50%{transform:translateX(14px)}}
 .bottle.pop{animation:bottlePop .75s cubic-bezier(.3,-0.4,.6,1.6) forwards}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-14px) rotate(5deg)}}
 @keyframes bottlePop{
@@ -128,30 +150,71 @@ button.ghost{
   transform:rotate(-1.2deg);transition:transform .3s;
 }
 .paper-wrap:hover{transform:rotate(0) scale(1.02)}
-.letter-img{width:100%;max-width:100%;display:block;border-radius:8px;cursor:zoom-in}
+/* 信件不要無限長，免得整頁變得又高又空 */
+.letter-img{width:100%;max-width:100%;max-height:72vh;object-fit:contain;display:block;border-radius:8px;cursor:zoom-in}
 .section-tag{
   display:inline-block;background:var(--gold);color:#fff;font-size:13px;
   border-radius:99px;padding:4px 14px;margin-bottom:10px;letter-spacing:.1em;
   box-shadow:0 2px 8px rgba(0,30,60,.3);
 }
-/* 蠟封 */
-.seal-stage{text-align:center;padding:40px 10px;background:rgba(255,255,255,.08);
-  border:2px dashed rgba(255,255,255,.35);border-radius:16px}
-.seal{display:inline-flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;background:none;border:0;font-family:inherit}
+/* 蠟封：拆信前的信封，要有份量、不能是一塊空白 */
+.seal-stage{text-align:center;padding:30px 16px;border-radius:18px;position:relative;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 35%, rgba(255,255,255,.18), rgba(255,255,255,.05) 60%);
+  border:2px dashed rgba(255,255,255,.4)}
+/* 信封本體 */
+.envelope{
+  position:relative;width:min(88%,330px);margin:0 auto;aspect-ratio:3/2;
+  background:linear-gradient(170deg,#fdf6e0,#e9d7ae);
+  border-radius:10px;box-shadow:0 14px 30px rgba(0,25,45,.42);
+  animation:envBob 3.4s ease-in-out infinite;
+}
+@keyframes envBob{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1deg)}}
+/* 上掀的封口 */
+.envelope::before{
+  content:'';position:absolute;inset:0 0 auto 0;height:62%;
+  background:linear-gradient(160deg,#f5e9c8,#d9c295);
+  clip-path:polygon(0 0,100% 0,50% 100%);
+  border-radius:10px 10px 0 0;
+}
+/* 收件人：小蚵人 */
+.envelope::after{
+  content:'To: 勇者';position:absolute;left:0;right:0;bottom:14%;
+  font-size:13px;color:#a08a55;letter-spacing:.12em;
+}
+.seal{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;gap:0;cursor:pointer;background:none;border:0;font-family:inherit;z-index:2}
 .seal .wax{
-  width:96px;height:96px;border-radius:50%;
-  background:radial-gradient(circle at 32% 30%, #e05a4e, #a02318 70%);
-  display:flex;align-items:center;justify-content:center;font-size:42px;
-  box-shadow:0 6px 14px rgba(90,10,0,.45), inset 0 -4px 8px rgba(60,0,0,.4);
+  width:92px;height:92px;border-radius:50%;
+  background:radial-gradient(circle at 32% 30%, #e8695c, #97200f 72%);
+  display:flex;align-items:center;justify-content:center;font-size:40px;
+  box-shadow:0 8px 18px rgba(90,10,0,.5), inset 0 -5px 10px rgba(60,0,0,.45), 0 0 0 5px rgba(255,255,255,.18);
   animation:pulse 1.8s ease-in-out infinite;
 }
-@keyframes pulse{50%{transform:scale(1.06)}}
-.seal span{color:#fff;font-size:15px;text-shadow:0 1px 6px rgba(0,30,60,.6)}
+@keyframes pulse{50%{transform:scale(1.07)}}
+.seal-hint{margin-top:18px;color:#fff;font-size:15.5px;text-shadow:0 1px 6px rgba(0,30,60,.65);
+  animation:blink 1.8s ease-in-out infinite}
+.seal-sub{margin-top:6px;color:rgba(255,255,255,.72);font-size:12.5px}
+/* 面板裡漂浮的小珍珠，讓等待的畫面不空 */
+.seal-stage .drift{position:absolute;border-radius:50%;background:rgba(255,255,255,.3);
+  box-shadow:0 0 8px rgba(255,255,255,.5);pointer-events:none;animation:drift linear infinite}
+@keyframes drift{from{transform:translateY(20px);opacity:0}
+  20%{opacity:.9} to{transform:translateY(-260px);opacity:0}}
+/* 拆封：蠟封彈開、封口掀起、整個信封放大淡出 */
 .seal-stage.cracking .wax{animation:crack .5s ease-in forwards}
 @keyframes crack{
-  40%{transform:scale(1.25) rotate(-8deg)}
-  100%{transform:scale(1.9) rotate(12deg);opacity:0}
+  35%{transform:scale(1.28) rotate(-10deg)}
+  100%{transform:scale(2) rotate(14deg);opacity:0}
 }
+.seal-stage.cracking .envelope{animation:envOpen .5s ease-in forwards}
+@keyframes envOpen{
+  30%{transform:scale(1.05) rotate(1deg)}
+  100%{transform:scale(1.22) translateY(-14px);opacity:0}
+}
+.seal-stage.cracking .envelope::before{animation:flap .45s ease-in forwards;transform-origin:top center}
+@keyframes flap{to{transform:rotateX(-155deg)}}
+.seal-stage.cracking .seal-hint,
+.seal-stage.cracking .seal-sub{animation:fadeOut .3s ease forwards}
+@keyframes fadeOut{to{opacity:0}}
 /* 回信展開 */
 .reply-wrap{animation:unfold .6s cubic-bezier(.2,.8,.3,1) both}
 @keyframes unfold{from{opacity:0;transform:perspective(900px) rotateX(-72deg);transform-origin:top center}
@@ -295,8 +358,13 @@ footer{margin-top:36px;text-align:center;color:rgba(255,255,255,.75);font-size:1
 
   <!-- 第三步：瓶子出現 -->
   <div id="scr-bottle" class="bottle-stage hidden">
-    <span class="bottle" id="bottle">🍾</span>
+    <div class="bottle-wrap">
+      <span class="glow"></span>
+      <span class="bottle" id="bottle">🍾</span>
+      <span class="ripple"></span><span class="ripple r2"></span><span class="ripple r3"></span>
+    </div>
     <p>波浪把一個瓶子推到你腳邊……點它！</p>
+    <div class="wave"></div>
   </div>
 
   <!-- 第四步：內容（左信右回信） -->
@@ -312,10 +380,13 @@ footer{margin-top:36px;text-align:center;color:rgba(255,255,255,.75);font-size:1
 
       <div class="side side-right">
         <div class="seal-stage" id="seal-row">
-          <button class="seal" id="seal-btn">
-            <span class="wax">🦪</span>
-            <span>點一下，拆開小蚵人的回信</span>
-          </button>
+          <div class="envelope">
+            <button class="seal" id="seal-btn" aria-label="拆開小蚵人的回信">
+              <span class="wax">🦪</span>
+            </button>
+          </div>
+          <div class="seal-hint">點一下蠟封，拆開小蚵人的回信</div>
+          <div class="seal-sub">這封信從外海的蚵棚寄來，只給你一個人</div>
         </div>
 
         <div class="reply-wrap hidden" id="reply-panel">
@@ -481,6 +552,7 @@ footer{margin-top:36px;text-align:center;color:rgba(255,255,255,.75);font-size:1
     }
     // 右：回信先用蠟封蓋著
     $('seal-row').classList.remove('hidden','cracking');
+    seedDrift();
     $('reply-panel').classList.add('hidden');
     $('again-row').classList.add('hidden');
     $('reply-body').innerHTML=doc.reply;
@@ -532,6 +604,20 @@ footer{margin-top:36px;text-align:center;color:rgba(255,255,255,.75);font-size:1
       '<span>團內排名 #'+ks.rank+'</span>'+
       '<span>Lv.'+ks.lv+' '+esc(ks.title)+'</span>'+
       '<span>⚔ '+ks.exp.toLocaleString()+' EXP</span>';
+  }
+
+  // 信封面板裡漂浮的小珍珠，讓拆封前的畫面不空
+  function seedDrift(){
+    const stage=$('seal-row');
+    stage.querySelectorAll('.drift').forEach(e=>e.remove());
+    for(let i=0;i<9;i++){
+      const d=document.createElement('span');
+      d.className='drift';
+      const s=4+Math.random()*9;
+      d.style.cssText='width:'+s+'px;height:'+s+'px;left:'+(6+Math.random()*88)+'%;bottom:0;'
+        +'animation-duration:'+(5+Math.random()*5).toFixed(1)+'s;animation-delay:'+(Math.random()*5).toFixed(1)+'s';
+      stage.appendChild(d);
+    }
   }
 
   // 點信件可放大
