@@ -71,6 +71,8 @@ button.ghost{
   background:none;border:1.5px solid var(--gold-d);color:var(--gold-d);border-radius:10px;cursor:pointer;
 }
 .err{color:#b3541e;text-align:center;margin-top:12px;font-size:15px;line-height:1.7;display:none}
+.err small{color:#a08050}
+.calm{text-align:center;font-size:13px;color:#8a744a;margin-top:8px}
 .choice-btns{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap}
 .choice-btns button{
   flex:1;min-width:130px;font-family:inherit;border:2px solid var(--gold);border-radius:14px;
@@ -233,7 +235,9 @@ footer{margin-top:36px;text-align:center;color:rgba(255,255,255,.75);font-size:1
   <div id="scr-name" class="panel hidden">
     <h2 id="name-title">請輸入你的英文名字</h2>
     <label>就是營隊時用的那個名字喔<br>（例如：Wendy、Gary）</label>
-    <input type="text" id="name-input" autocomplete="off" autocapitalize="off" placeholder="Your English name">
+    <input type="text" id="name-input" autocomplete="off" autocapitalize="words"
+           autocorrect="off" spellcheck="false" enterkeyhint="search" placeholder="Your English name">
+    <p class="calm">大寫、小寫都可以，不用怕打錯 😊</p>
     <button class="main" id="name-go">🔍 尋找我的瓶中信</button>
     <p class="err" id="name-err"></p>
     <div style="text-align:center"><button class="ghost" data-back="scr-school">← 重選學校</button></div>
@@ -328,17 +332,25 @@ footer{margin-top:36px;text-align:center;color:rgba(255,255,255,.75);font-size:1
     setTimeout(()=>$('name-input').focus(),200);
   }));
 
-  const norm=s=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
+  // 名字正規化：大小寫、全形英文、空白、連字號、標點一律吃掉
+  // （Ｗｅｎｄｙ ／ WENDY ／ wendy ／ Fei-Fei 都能查到同一個人）
+  const norm=s=>String(s)
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+    .toLowerCase().replace(/[^a-z0-9]/g,'');
   async function sha12(str){
     const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
     return [...new Uint8Array(buf)].map(x=>x.toString(16).padStart(2,'0')).join('').slice(0,12);
   }
 
-  async function fetchDoc(key){
-    const id=await sha12('doc|'+key);
+  async function fetchById(id){
     const r=await fetch('data/'+id+'.json',{cache:'no-store'});
-    if(!r.ok) return null;
-    return r.json();
+    return r.ok ? r.json() : null;
+  }
+  async function fetchDoc(key){
+    let doc=await fetchById(await sha12('doc|'+key));
+    // 打錯字時會落在別名檔，跟著指標走到正主（最多兩層，避免無限繞）
+    for(let i=0;i<2 && doc && doc.t==='alias';i++) doc=await fetchById(doc.k);
+    return doc;
   }
 
   async function lookup(){
@@ -348,7 +360,9 @@ footer{margin-top:36px;text-align:center;color:rgba(255,255,255,.75);font-size:1
     $('name-go').disabled=true; $('name-go').textContent='🌊 正在潛水尋找…';
     try{
       let doc=await fetchDoc(school+'|'+n);
-      if(!doc) return err('海裡找不到「'+raw.trim()+'」這個名字。<br>檢查一下拼字，要跟營隊名牌一樣喔！');
+      if(!doc) return err('海裡找不到「'+raw.trim()+'」這個名字 🌊<br>'
+        +'再檢查一次拼字，要跟營隊名牌上一樣喔！<br>'
+        +'<small>（大寫小寫都可以，不用擔心）</small>');
       if(doc.t==='choice'){
         const box=$('choice-btns'); box.innerHTML='';
         $('choice-label').textContent='保西有兩位 '+doc.name+'！請問你姓什麼呢？';
@@ -357,8 +371,8 @@ footer{margin-top:36px;text-align:center;color:rgba(255,255,255,.75);font-size:1
           const sur=o.label.split(' ')[0];
           b.innerHTML='<span class="surname">'+sur+'</span><span class="cname">我是姓'+sur+'的 '+doc.name+'</span>';
           b.addEventListener('click',async()=>{
-            const r=await fetch('data/'+o.k+'.json',{cache:'no-store'});
-            if(r.ok){ openBottle(await r.json()); }
+            const d=await fetchById(o.k);
+            if(d) openBottle(d);
           });
           box.appendChild(b);
         }
