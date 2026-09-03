@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>小蚵人的瓶中信 🦪</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
+<style>
+/* 注音圓體（子集化，字型自帶注音；破音字用變體選擇器） */
+@font-face{font-family:'BpmfRounded';src:url('fonts/bpmf-r.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'BpmfRounded';src:url('fonts/bpmf-b.woff2') format('woff2');font-weight:700;font-display:swap}
+</style>
+<style>
+:root{
+  --sea1:#0e3a5c; --sea2:#155e8a; --sea3:#2a8fbd;
+  --parch:#f6ecd4; --parch2:#efe0bd; --ink:#3a2d1c; --gold:#d4a437; --gold-d:#a97f22;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:"Huninn","Microsoft JhengHei","Noto Sans TC",sans-serif;
+  color:var(--ink);
+  background:linear-gradient(180deg,#7ec8e3 0%, var(--sea3) 30%, var(--sea2) 60%, var(--sea1) 100%);
+  background-attachment:fixed;
+  min-height:100%;
+}
+.wrap{max-width:640px;margin:0 auto;padding:24px 16px 80px;position:relative}
+header.top{text-align:center;color:#fff;padding:18px 0 6px}
+header.top h1{font-size:clamp(26px,7vw,38px);letter-spacing:.08em;text-shadow:0 2px 10px rgba(0,40,70,.5)}
+header.top .en{font-size:13px;letter-spacing:.28em;opacity:.85;text-transform:uppercase;margin-top:6px}
+.bubble{position:fixed;bottom:-30px;border-radius:50%;background:rgba(255,255,255,.18);animation:rise linear infinite;pointer-events:none}
+@keyframes rise{to{transform:translateY(-110vh)}}
+.panel{
+  background:linear-gradient(180deg,var(--parch),var(--parch2));
+  border:2px solid var(--gold);
+  border-radius:18px;
+  box-shadow:0 10px 30px rgba(0,25,45,.35);
+  padding:22px 20px;
+  margin-top:22px;
+  animation:pop .35s ease;
+}
+@keyframes pop{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+h2{font-size:20px;color:var(--gold-d);margin-bottom:12px;text-align:center}
+.doors{display:flex;gap:14px;flex-wrap:wrap}
+.door{
+  flex:1;min-width:220px;cursor:pointer;text-align:center;
+  background:#fff9ea;border:2px solid var(--gold);border-radius:14px;
+  padding:22px 14px;transition:transform .15s, box-shadow .15s;
+}
+.door:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(0,30,60,.25)}
+.door .ico{font-size:42px}
+.door h3{font-size:22px;margin:8px 0 2px}
+.door p{font-size:13px;color:#8a744a}
+.hint{text-align:center;font-size:13px;color:#7a6a48;margin-top:14px;line-height:1.7}
+label{display:block;font-size:15px;margin-bottom:8px;text-align:center;line-height:1.8}
+input[type=text]{
+  width:100%;font-size:22px;text-align:center;padding:12px;font-family:inherit;
+  border:2px solid var(--gold);border-radius:12px;background:#fffdf6;color:var(--ink);
+}
+input[type=text]:focus{outline:3px solid rgba(212,164,55,.35)}
+button.main{
+  display:block;width:100%;margin-top:14px;padding:13px;font-size:19px;font-family:inherit;
+  background:linear-gradient(180deg,#e8b944,#c9942a);color:#fff;border:0;border-radius:12px;cursor:pointer;
+  text-shadow:0 1px 2px rgba(90,60,0,.4);
+}
+button.main:active{transform:translateY(1px)}
+button.ghost{
+  display:inline-block;margin-top:14px;padding:8px 16px;font-size:14px;font-family:inherit;
+  background:none;border:1.5px solid var(--gold-d);color:var(--gold-d);border-radius:10px;cursor:pointer;
+}
+.err{color:#b3541e;text-align:center;margin-top:12px;font-size:15px;line-height:1.7;display:none}
+.choice-btns{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap}
+.choice-btns button{
+  flex:1;min-width:130px;font-family:inherit;border:2px solid var(--gold);border-radius:14px;
+  background:#fff9ea;cursor:pointer;padding:18px 12px;transition:transform .15s, box-shadow .15s;
+}
+.choice-btns button:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(0,30,60,.22)}
+.choice-btns .surname{display:block;font-size:34px;font-weight:700;color:var(--gold-d);line-height:1.2}
+.choice-btns .cname{display:block;font-size:15px;color:#8a744a;margin-top:4px}
+/* 瓶子動畫 */
+.bottle-stage{text-align:center;padding:30px 0 10px}
+.bottle{font-size:88px;display:inline-block;animation:bob 2.4s ease-in-out infinite;cursor:pointer;filter:drop-shadow(0 8px 10px rgba(0,25,45,.35))}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-14px) rotate(5deg)}}
+.bottle-stage p{color:#fff;margin-top:14px;font-size:15px;text-shadow:0 1px 6px rgba(0,30,60,.6);animation:blink 1.6s ease-in-out infinite}
+@keyframes blink{50%{opacity:.55}}
+/* 學生的信 */
+.letter-img{width:100%;border:3px solid #fff;border-radius:10px;box-shadow:0 6px 16px rgba(0,25,45,.3);background:#fff}
+.section-tag{
+  display:inline-block;background:var(--gold);color:#fff;font-size:13px;
+  border-radius:99px;padding:4px 14px;margin-bottom:10px;letter-spacing:.1em;
+}
+/* 封蠟按鈕 */
+.seal-row{text-align:center;margin:26px 0 6px}
+.seal{
+  display:inline-flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;
+  background:none;border:0;font-family:inherit;
+}
+.seal .wax{
+  width:84px;height:84px;border-radius:50%;
+  background:radial-gradient(circle at 32% 30%, #e05a4e, #a02318 70%);
+  display:flex;align-items:center;justify-content:center;font-size:38px;
+  box-shadow:0 6px 14px rgba(90,10,0,.45), inset 0 -4px 8px rgba(60,0,0,.4);
+  animation:pulse 1.8s ease-in-out infinite;
+}
+@keyframes pulse{50%{transform:scale(1.06)}}
+.seal span{color:#fff;font-size:15px;text-shadow:0 1px 6px rgba(0,30,60,.6)}
+/* 回信 */
+.reply-card{
+  background:linear-gradient(180deg,#fdf6e0,#f6ead0);
+  border:1px solid #d8c48e;border-radius:14px;padding:20px 18px;
+  line-height:2.3;font-size:16.5px;
+  box-shadow:inset 0 0 40px rgba(212,164,55,.12);
+}
+.reply-card.bpmf{font-family:'BpmfRounded','Huninn','Microsoft JhengHei',sans-serif;font-size:19px;line-height:2.0}
+.reply-card.bpmf .en{font-family:'Huninn','Microsoft JhengHei',sans-serif;font-size:15px}
+.reply-card.bpmf .sig small{font-family:'Huninn','Microsoft JhengHei',sans-serif}
+.reply-card ruby rt{font-size:9.5px;color:#a8542a;letter-spacing:0}
+.reply-card p{margin-bottom:8px}
+.reply-card .en{color:#33691e;font-style:italic;margin-top:14px}
+.reply-card .sig{text-align:right;color:#8a6d1f;margin-top:12px}
+.reply-card .sig small{display:block;color:#b0a077;font-size:12px}
+/* 結業紀念 */
+.ks-panel{
+  background:#1c1610;border-radius:16px;padding:20px 14px;margin-top:14px;
+  border:2px solid var(--gold);
+}
+.ks-panel .card{max-width:340px;margin:0 auto;background:rgba(243,231,205,.05)}
+.ks-title{text-align:center;color:var(--gold);font-size:15px;letter-spacing:.15em;margin-bottom:12px}
+.ks-stats{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.ks-stats span{background:rgba(212,164,55,.14);border:1px solid rgba(212,164,55,.4);color:#e8dcc0;border-radius:99px;padding:4px 12px;font-size:13px}
+.hidden{display:none}
+footer{margin-top:36px;text-align:center;color:rgba(255,255,255,.75);font-size:12px;line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>🦪 小蚵人的瓶中信</h1>
+    <div class="en">A LETTER FROM LITTLE OYSTER</div>
+  </header>
+
+  <!-- 第一步：選學校 -->
+  <div id="scr-school" class="panel">
+    <h2>勇者，你來自哪座島嶼？</h2>
+    <div class="doors">
+      <div class="door" data-school="longgang">
+        <div class="ico">🏫</div>
+        <h3>龍崗國小</h3>
+        <p>2026/7/6 – 7/10 夏令營</p>
+      </div>
+      <div class="door" data-school="baoxi">
+        <div class="ico">🏫</div>
+        <h3>保西國小</h3>
+        <p>2026/8/17 – 8/21 夏令營</p>
+      </div>
+    </div>
+    <p class="hint">小蚵人守信用：說好八月底回信，一封都不會少。<br>選你的學校，找到寫給你的那一封吧！</p>
+  </div>
+
+  <!-- 第二步：輸入名字 -->
+  <div id="scr-name" class="panel hidden">
+    <h2 id="name-title">請輸入你的英文名字</h2>
+    <label>就是營隊時用的那個名字喔<br>（例如：Wendy、Gary）</label>
+    <input type="text" id="name-input" autocomplete="off" autocapitalize="off" placeholder="Your English name">
+    <button class="main" id="name-go">🔍 尋找我的瓶中信</button>
+    <p class="err" id="name-err"></p>
+    <div style="text-align:center"><button class="ghost" data-back="scr-school">← 重選學校</button></div>
+  </div>
+
+  <!-- 第二步半：同名選擇 -->
+  <div id="scr-choice" class="panel hidden">
+    <h2>咦？有兩位勇者同名！</h2>
+    <label id="choice-label">請問你姓什麼呢？</label>
+    <div class="choice-btns" id="choice-btns"></div>
+    <div style="text-align:center"><button class="ghost" data-back="scr-name">← 重新輸入</button></div>
+  </div>
+
+  <!-- 第三步：瓶子出現 -->
+  <div id="scr-bottle" class="bottle-stage hidden">
+    <span class="bottle" id="bottle">🍾</span>
+    <p>波浪把一個瓶子推到你腳邊……點它！</p>
+  </div>
+
+  <!-- 第四步：內容 -->
+  <div id="scr-content" class="hidden">
+    <div class="panel" id="letter-panel">
+      <span class="section-tag" id="letter-tag">你寫給小蚵人的信</span>
+      <p style="font-size:14px;color:#8a744a;margin-bottom:10px" id="letter-note"></p>
+      <img class="letter-img" id="letter-img" alt="你當初寫的信">
+    </div>
+
+    <div class="seal-row" id="seal-row">
+      <button class="seal" id="seal-btn">
+        <span class="wax">🦪</span>
+        <span>拆開小蚵人的回信</span>
+      </button>
+    </div>
+
+    <div class="panel hidden" id="reply-panel">
+      <span class="section-tag">小蚵人的回信</span>
+      <div class="reply-card">
+        <div id="reply-body"></div>
+        <p class="en" id="reply-en"></p>
+        <p class="sig">—— 小蚵人 Little Oyster 🦪
+          <small>2026 年 8 月 31 日・寫於外海蚵棚</small></p>
+      </div>
+
+      <div class="ks-panel hidden" id="ks-panel">
+        <div class="ks-title">⚔ 冒險公會・結業紀念 ⚔</div>
+        <div id="ks-card"></div>
+        <div class="ks-stats" id="ks-stats"></div>
+      </div>
+
+      <div style="text-align:center">
+        <button class="ghost" id="btn-again">🌊 換一位勇者查詢</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>台南小蚵人說書辦桌雙語營隊・2026 夏<br>Made with ❤ &amp; 🦪</footer>
+</div>
+
+<script>
+(function(){
+  // 泡泡背景
+  for(let i=0;i<10;i++){
+    const b=document.createElement('div');
+    b.className='bubble';
+    const s=6+Math.random()*16;
+    b.style.cssText='width:'+s+'px;height:'+s+'px;left:'+Math.random()*100+'vw;animation-duration:'+(7+Math.random()*9)+'s;animation-delay:'+Math.random()*8+'s';
+    document.body.appendChild(b);
+  }
+
+  const $=id=>document.getElementById(id);
+  let school=null, currentDoc=null;
+
+  function show(id){
+    for(const s of ['scr-school','scr-name','scr-choice','scr-bottle','scr-content'])
+      $(s).classList.toggle('hidden', s!==id);
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  document.querySelectorAll('[data-back]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.back)));
+
+  document.querySelectorAll('.door').forEach(d=>d.addEventListener('click',()=>{
+    school=d.dataset.school;
+    $('name-title').textContent=(school==='longgang'?'龍崗':'保西')+'的勇者，請輸入你的英文名字';
+    $('name-err').style.display='none';
+    $('name-input').value='';
+    show('scr-name');
+    setTimeout(()=>$('name-input').focus(),200);
+  }));
+
+  const norm=s=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
+  async function sha12(str){
+    const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return [...new Uint8Array(buf)].map(x=>x.toString(16).padStart(2,'0')).join('').slice(0,12);
+  }
+
+  async function fetchDoc(key){
+    const id=await sha12('doc|'+key);
+    const r=await fetch('data/'+id+'.json',{cache:'no-store'});
+    if(!r.ok) return null;
+    return r.json();
+  }
+
+  async function lookup(){
+    const raw=$('name-input').value;
+    const n=norm(raw);
+    if(!n){ return err('要先輸入名字才找得到喔！'); }
+    $('name-go').disabled=true; $('name-go').textContent='🌊 正在潛水尋找…';
+    try{
+      let doc=await fetchDoc(school+'|'+n);
+      if(!doc) return err('海裡找不到「'+raw.trim()+'」這個名字。<br>檢查一下拼字，要跟營隊名牌一樣喔！');
+      if(doc.t==='choice'){
+        const box=$('choice-btns'); box.innerHTML='';
+        $('choice-label').textContent='保西有兩位 '+doc.name+'！請問你姓什麼呢？';
+        for(const o of doc.options){
+          const b=document.createElement('button');
+          const sur=o.label.split(' ')[0];
+          b.innerHTML='<span class="surname">'+sur+'</span><span class="cname">我是姓'+sur+'的 '+doc.name+'</span>';
+          b.addEventListener('click',async()=>{
+            const r=await fetch('data/'+o.k+'.json',{cache:'no-store'});
+            if(r.ok){ openBottle(await r.json()); }
+          });
+          box.appendChild(b);
+        }
+        show('scr-choice');
+        return;
+      }
+      openBottle(doc);
+    }catch(e){
+      err('糟糕，海流有點亂（網路問題），再試一次！');
+    }finally{
+      $('name-go').disabled=false; $('name-go').textContent='🔍 尋找我的瓶中信';
+    }
+  }
+  function err(html){ const e=$('name-err'); e.innerHTML=html; e.style.display='block'; }
+  $('name-go').addEventListener('click',lookup);
+  $('name-input').addEventListener('keydown',e=>{ if(e.key==='Enter') lookup(); });
+
+  function openBottle(doc){
+    currentDoc=doc;
+    show('scr-bottle');
+  }
+
+  $('bottle').addEventListener('click',()=>{ renderContent(currentDoc); });
+
+  function renderContent(doc){
+    show('scr-content');
+    // 信
+    if(doc.letter){
+      $('letter-panel').classList.remove('hidden');
+      $('letter-img').src=doc.letter;
+      $('letter-tag').textContent=doc.letterTag||'你寫給小蚵人的信';
+      $('letter-note').textContent=doc.letterNote||('這是 '+doc.name+' 在營隊最後一天寫的信，小蚵人一直收藏著。');
+    }else{
+      $('letter-panel').classList.add('hidden');
+    }
+    // 回信先蓋著
+    $('seal-row').classList.remove('hidden');
+    $('reply-panel').classList.add('hidden');
+    $('reply-body').innerHTML=doc.reply;
+    $('reply-en').textContent=doc.replyEn||'';
+    // 中低年級用注音圓體（字型自帶注音）
+    document.querySelector('.reply-card').classList.toggle('bpmf', !!doc.bpmf);
+    // 結業紀念
+    const ks=doc.keepsake;
+    if(ks && ks.cardHtml){
+      ensureAvatarCss();
+      $('ks-panel').classList.remove('hidden');
+      const wrap=$('ks-card');
+      wrap.innerHTML=ks.cardHtml;
+      wrap.style.setProperty('--cc', ks.color||'#d4a437');
+      $('ks-stats').innerHTML=
+        '<span>'+ks.team+'・'+ks.teamSub+'</span>'+
+        '<span>團內排名 #'+ks.rank+'</span>'+
+        '<span>Lv.'+ks.lv+' '+ks.title+'</span>'+
+        '<span>⚔ '+ks.exp.toLocaleString()+' EXP</span>';
+    }else{
+      $('ks-panel').classList.add('hidden');
+    }
+  }
+
+  let cssLoaded=false;
+  function ensureAvatarCss(){
+    if(cssLoaded) return;
+    const l=document.createElement('link');
+    l.rel='stylesheet'; l.href='avatar.css';
+    document.head.appendChild(l);
+    cssLoaded=true;
+  }
+
+  $('seal-btn').addEventListener('click',()=>{
+    $('seal-row').classList.add('hidden');
+    $('reply-panel').classList.remove('hidden');
+  });
+
+  $('btn-again').addEventListener('click',()=>{ show('scr-school'); });
+})();
+</script>
+</body>
+</html>
