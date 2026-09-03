@@ -25,7 +25,8 @@ body{
   background-attachment:fixed;
   min-height:100%;
 }
-.wrap{max-width:640px;margin:0 auto;padding:24px 16px 80px;position:relative}
+.wrap{max-width:640px;margin:0 auto;padding:24px 16px 80px;position:relative;transition:max-width .5s ease}
+.wrap.wide{max-width:1180px}
 header.top{text-align:center;color:#fff;padding:18px 0 6px}
 header.top h1{font-size:clamp(26px,7vw,38px);letter-spacing:.08em;text-shadow:0 2px 10px rgba(0,40,70,.5)}
 header.top .en{font-size:13px;letter-spacing:.28em;opacity:.85;text-transform:uppercase;margin-top:6px}
@@ -79,32 +80,71 @@ button.ghost{
 .choice-btns .surname{display:block;font-size:34px;font-weight:700;color:var(--gold-d);line-height:1.2}
 .choice-btns .cname{display:block;font-size:15px;color:#8a744a;margin-top:4px}
 /* 瓶子動畫 */
-.bottle-stage{text-align:center;padding:30px 0 10px}
-.bottle{font-size:88px;display:inline-block;animation:bob 2.4s ease-in-out infinite;cursor:pointer;filter:drop-shadow(0 8px 10px rgba(0,25,45,.35))}
+.bottle-stage{text-align:center;padding:30px 0 10px;position:relative}
+.bottle{font-size:88px;display:inline-block;animation:bob 2.4s ease-in-out infinite;cursor:pointer;filter:drop-shadow(0 8px 10px rgba(0,25,45,.35));transition:transform .1s}
+.bottle:hover{transform:scale(1.08)}
+.bottle.pop{animation:bottlePop .75s cubic-bezier(.3,-0.4,.6,1.6) forwards}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-14px) rotate(5deg)}}
+@keyframes bottlePop{
+  0%{transform:none}
+  25%{transform:rotate(-16deg) scale(1.12)}
+  55%{transform:rotate(14deg) scale(1.18)}
+  100%{transform:rotate(80deg) scale(.2) translateY(60px);opacity:0}
+}
 .bottle-stage p{color:#fff;margin-top:14px;font-size:15px;text-shadow:0 1px 6px rgba(0,30,60,.6);animation:blink 1.6s ease-in-out infinite}
 @keyframes blink{50%{opacity:.55}}
-/* 學生的信 */
-.letter-img{width:100%;border:3px solid #fff;border-radius:10px;box-shadow:0 6px 16px rgba(0,25,45,.3);background:#fff}
+/* 開瓶噴出的珍珠 */
+.pearl{position:absolute;left:50%;top:44%;width:13px;height:13px;border-radius:50%;
+  background:radial-gradient(circle at 32% 30%,#fff,#cfe8f5 55%,#8fb8cc);
+  box-shadow:0 0 10px rgba(255,255,255,.85);pointer-events:none;animation:burst .95s ease-out forwards}
+@keyframes burst{to{transform:translate(var(--dx),var(--dy)) scale(.25);opacity:0}}
+
+/* 書桌：左信右回信 */
+.desk{display:flex;gap:20px;align-items:flex-start;margin-top:20px}
+.desk.solo{max-width:600px;margin-inline:auto}
+.desk.solo .side-right{animation:unfoldIn .6s cubic-bezier(.2,.8,.3,1) both}
+@keyframes unfoldIn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+.side{flex:1;min-width:0}
+.side-left{animation:slideInL .65s cubic-bezier(.2,.7,.3,1) both}
+.side-right{animation:slideInR .65s cubic-bezier(.2,.7,.3,1) .12s both}
+@keyframes slideInL{from{opacity:0;transform:translateX(-46px) rotate(-3deg)}to{opacity:1;transform:none}}
+@keyframes slideInR{from{opacity:0;transform:translateX(46px) rotate(3deg)}to{opacity:1;transform:none}}
+.side-note{font-size:13.5px;color:#e8f4fb;margin-bottom:10px;line-height:1.6;text-shadow:0 1px 5px rgba(0,30,60,.55)}
+.paper-wrap{
+  background:#fff;border-radius:12px;padding:8px;
+  box-shadow:0 12px 26px rgba(0,25,45,.4);
+  transform:rotate(-1.2deg);transition:transform .3s;
+}
+.paper-wrap:hover{transform:rotate(0) scale(1.02)}
+.letter-img{width:100%;display:block;border-radius:8px;cursor:zoom-in}
 .section-tag{
   display:inline-block;background:var(--gold);color:#fff;font-size:13px;
   border-radius:99px;padding:4px 14px;margin-bottom:10px;letter-spacing:.1em;
+  box-shadow:0 2px 8px rgba(0,30,60,.3);
 }
-/* 封蠟按鈕 */
-.seal-row{text-align:center;margin:26px 0 6px}
-.seal{
-  display:inline-flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;
-  background:none;border:0;font-family:inherit;
-}
+/* 蠟封 */
+.seal-stage{text-align:center;padding:40px 10px;background:rgba(255,255,255,.08);
+  border:2px dashed rgba(255,255,255,.35);border-radius:16px}
+.seal{display:inline-flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;background:none;border:0;font-family:inherit}
 .seal .wax{
-  width:84px;height:84px;border-radius:50%;
+  width:96px;height:96px;border-radius:50%;
   background:radial-gradient(circle at 32% 30%, #e05a4e, #a02318 70%);
-  display:flex;align-items:center;justify-content:center;font-size:38px;
+  display:flex;align-items:center;justify-content:center;font-size:42px;
   box-shadow:0 6px 14px rgba(90,10,0,.45), inset 0 -4px 8px rgba(60,0,0,.4);
   animation:pulse 1.8s ease-in-out infinite;
 }
 @keyframes pulse{50%{transform:scale(1.06)}}
 .seal span{color:#fff;font-size:15px;text-shadow:0 1px 6px rgba(0,30,60,.6)}
+.seal-stage.cracking .wax{animation:crack .5s ease-in forwards}
+@keyframes crack{
+  40%{transform:scale(1.25) rotate(-8deg)}
+  100%{transform:scale(1.9) rotate(12deg);opacity:0}
+}
+/* 回信展開 */
+.reply-wrap{animation:unfold .6s cubic-bezier(.2,.8,.3,1) both}
+@keyframes unfold{from{opacity:0;transform:perspective(900px) rotateX(-72deg);transform-origin:top center}
+                  to{opacity:1;transform:none}}
+.reply-card p{opacity:0;animation:lineIn .5s ease forwards}
 /* 回信 */
 .reply-card{
   background:linear-gradient(180deg,#fdf6e0,#f6ead0);
@@ -120,17 +160,48 @@ button.ghost{
 .reply-card .en{color:#33691e;font-style:italic;margin-top:14px}
 .reply-card .sig{text-align:right;color:#8a6d1f;margin-top:12px}
 .reply-card .sig small{display:block;color:#b0a077;font-size:12px}
+@keyframes lineIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+/* 燈塔般的光暈掃過回信 */
+.reply-card{position:relative;overflow:hidden}
+.reply-card::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 50%,transparent 65%);
+  transform:translateX(-120%);
+}
+.reply-card.shine::after{animation:shine 1.1s ease-out .35s}
+@keyframes shine{to{transform:translateX(120%)}}
 /* 結業紀念 */
 .ks-panel{
-  background:#1c1610;border-radius:16px;padding:20px 14px;margin-top:14px;
+  background:#1c1610;border-radius:16px;padding:20px 14px;margin-top:22px;
   border:2px solid var(--gold);
+  animation:riseUp .7s cubic-bezier(.2,.8,.3,1) both;
 }
+@keyframes riseUp{from{opacity:0;transform:translateY(30px) scale(.96)}to{opacity:1;transform:none}}
 .ks-panel .card{max-width:340px;margin:0 auto;background:rgba(243,231,205,.05)}
 .ks-title{text-align:center;color:var(--gold);font-size:15px;letter-spacing:.15em;margin-bottom:12px}
 .ks-stats{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
 .ks-stats span{background:rgba(212,164,55,.14);border:1px solid rgba(212,164,55,.4);color:#e8dcc0;border-radius:99px;padding:4px 12px;font-size:13px}
 .hidden{display:none}
+#again-row{margin-top:24px}
 footer{margin-top:36px;text-align:center;color:rgba(255,255,255,.75);font-size:12px;line-height:1.8}
+/* 手機：改直排，信在上、回信在下 */
+@media (max-width:760px){
+  .desk{flex-direction:column;gap:16px}
+  .side-right{animation:slideInUp .6s cubic-bezier(.2,.7,.3,1) .12s both}
+  @keyframes slideInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+  .paper-wrap{transform:none}
+  .seal-stage{padding:28px 10px}
+}
+/* 尊重「減少動態效果」的系統設定 */
+@media (prefers-reduced-motion:reduce){
+  *,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+/* 放大檢視信件 */
+.lightbox{position:fixed;inset:0;background:rgba(4,20,35,.92);z-index:999;display:flex;
+  align-items:center;justify-content:center;padding:20px;cursor:zoom-out;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.lightbox img{max-width:100%;max-height:100%;border-radius:10px;box-shadow:0 20px 50px rgba(0,0,0,.6)}
+.lightbox .tip{position:absolute;bottom:22px;color:#cfe4f0;font-size:13px}
 </style>
 </head>
 <body>
@@ -182,39 +253,45 @@ footer{margin-top:36px;text-align:center;color:rgba(255,255,255,.75);font-size:1
     <p>波浪把一個瓶子推到你腳邊……點它！</p>
   </div>
 
-  <!-- 第四步：內容 -->
+  <!-- 第四步：內容（左信右回信） -->
   <div id="scr-content" class="hidden">
-    <div class="panel" id="letter-panel">
-      <span class="section-tag" id="letter-tag">你寫給小蚵人的信</span>
-      <p style="font-size:14px;color:#8a744a;margin-bottom:10px" id="letter-note"></p>
-      <img class="letter-img" id="letter-img" alt="你當初寫的信">
+    <div class="desk">
+      <div class="side side-left" id="letter-panel">
+        <span class="section-tag" id="letter-tag">你寫給小蚵人的信</span>
+        <p class="side-note" id="letter-note"></p>
+        <div class="paper-wrap">
+          <img class="letter-img" id="letter-img" alt="你當初寫的信">
+        </div>
+      </div>
+
+      <div class="side side-right">
+        <div class="seal-stage" id="seal-row">
+          <button class="seal" id="seal-btn">
+            <span class="wax">🦪</span>
+            <span>點一下，拆開小蚵人的回信</span>
+          </button>
+        </div>
+
+        <div class="reply-wrap hidden" id="reply-panel">
+          <span class="section-tag">小蚵人的回信</span>
+          <div class="reply-card" id="reply-card">
+            <div id="reply-body"></div>
+            <p class="en" id="reply-en"></p>
+            <p class="sig">—— 小蚵人 Little Oyster 🦪
+              <small>2026 年 8 月 31 日・寫於外海蚵棚</small></p>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="seal-row" id="seal-row">
-      <button class="seal" id="seal-btn">
-        <span class="wax">🦪</span>
-        <span>拆開小蚵人的回信</span>
-      </button>
+    <div class="ks-panel hidden" id="ks-panel">
+      <div class="ks-title">⚔ 冒險公會・結業紀念 ⚔</div>
+      <div id="ks-card"></div>
+      <div class="ks-stats" id="ks-stats"></div>
     </div>
 
-    <div class="panel hidden" id="reply-panel">
-      <span class="section-tag">小蚵人的回信</span>
-      <div class="reply-card">
-        <div id="reply-body"></div>
-        <p class="en" id="reply-en"></p>
-        <p class="sig">—— 小蚵人 Little Oyster 🦪
-          <small>2026 年 8 月 31 日・寫於外海蚵棚</small></p>
-      </div>
-
-      <div class="ks-panel hidden" id="ks-panel">
-        <div class="ks-title">⚔ 冒險公會・結業紀念 ⚔</div>
-        <div id="ks-card"></div>
-        <div class="ks-stats" id="ks-stats"></div>
-      </div>
-
-      <div style="text-align:center">
-        <button class="ghost" id="btn-again">🌊 換一位勇者查詢</button>
-      </div>
+    <div style="text-align:center" id="again-row" class="hidden">
+      <button class="ghost" id="btn-again">🌊 換一位勇者查詢</button>
     </div>
   </div>
 
@@ -304,43 +381,78 @@ footer{margin-top:36px;text-align:center;color:rgba(255,255,255,.75);font-size:1
     show('scr-bottle');
   }
 
-  $('bottle').addEventListener('click',()=>{ renderContent(currentDoc); });
+  // 點瓶子：噴珍珠 → 瓶子飛走 → 攤開左右兩封信
+  let popping=false;
+  $('bottle').addEventListener('click',()=>{
+    if(popping) return; popping=true;
+    const b=$('bottle'), stage=$('scr-bottle');
+    b.classList.add('pop');
+    for(let i=0;i<14;i++){
+      const p=document.createElement('div');
+      p.className='pearl';
+      const a=(Math.PI*2*i)/14 + Math.random()*0.4;
+      const r=90+Math.random()*130;
+      p.style.setProperty('--dx',(Math.cos(a)*r).toFixed(0)+'px');
+      p.style.setProperty('--dy',(Math.sin(a)*r-40).toFixed(0)+'px');
+      p.style.animationDelay=(Math.random()*0.15)+'s';
+      stage.appendChild(p);
+      setTimeout(()=>p.remove(),1200);
+    }
+    setTimeout(()=>{
+      b.classList.remove('pop'); popping=false;
+      renderContent(currentDoc);
+    },700);
+  });
 
   function renderContent(doc){
     show('scr-content');
-    // 信
-    if(doc.letter){
-      $('letter-panel').classList.remove('hidden');
+    // 左：學生的信（沒有信的人改成單欄置中，不留空白）
+    const hasLetter=!!doc.letter;
+    $('letter-panel').style.display=hasLetter?'':'none';
+    document.querySelector('.desk').classList.toggle('solo', !hasLetter);
+    document.querySelector('.wrap').classList.toggle('wide', hasLetter);
+    if(hasLetter){
       $('letter-img').src=doc.letter;
       $('letter-tag').textContent=doc.letterTag||'你寫給小蚵人的信';
       $('letter-note').textContent=doc.letterNote||('這是 '+doc.name+' 在營隊最後一天寫的信，小蚵人一直收藏著。');
-    }else{
-      $('letter-panel').classList.add('hidden');
     }
-    // 回信先蓋著
-    $('seal-row').classList.remove('hidden');
+    // 右：回信先用蠟封蓋著
+    $('seal-row').classList.remove('hidden','cracking');
     $('reply-panel').classList.add('hidden');
+    $('again-row').classList.add('hidden');
     $('reply-body').innerHTML=doc.reply;
     $('reply-en').textContent=doc.replyEn||'';
-    // 中低年級用注音圓體（字型自帶注音）
-    document.querySelector('.reply-card').classList.toggle('bpmf', !!doc.bpmf);
-    // 結業紀念
-    const ks=doc.keepsake;
-    if(ks && ks.cardHtml){
-      ensureAvatarCss();
-      $('ks-panel').classList.remove('hidden');
-      const wrap=$('ks-card');
-      wrap.innerHTML=ks.cardHtml;
-      wrap.style.setProperty('--cc', ks.color||'#d4a437');
-      $('ks-stats').innerHTML=
-        '<span>'+ks.team+'・'+ks.teamSub+'</span>'+
-        '<span>團內排名 #'+ks.rank+'</span>'+
-        '<span>Lv.'+ks.lv+' '+ks.title+'</span>'+
-        '<span>⚔ '+ks.exp.toLocaleString()+' EXP</span>';
-    }else{
-      $('ks-panel').classList.add('hidden');
-    }
+    $('reply-card').classList.toggle('bpmf', !!doc.bpmf);
+    // 結業紀念（拆封後才出現）
+    pendingKs=doc.keepsake;
+    $('ks-panel').classList.add('hidden');
   }
+
+  let pendingKs=null;
+
+  function showKeepsake(){
+    const ks=pendingKs;
+    if(!(ks && ks.cardHtml)) return;
+    ensureAvatarCss();
+    $('ks-panel').classList.remove('hidden');
+    const wrap=$('ks-card');
+    wrap.innerHTML=ks.cardHtml;
+    wrap.style.setProperty('--cc', ks.color||'#d4a437');
+    $('ks-stats').innerHTML=
+      '<span>'+ks.team+'・'+ks.teamSub+'</span>'+
+      '<span>團內排名 #'+ks.rank+'</span>'+
+      '<span>Lv.'+ks.lv+' '+ks.title+'</span>'+
+      '<span>⚔ '+ks.exp.toLocaleString()+' EXP</span>';
+  }
+
+  // 點信件可放大
+  $('letter-img').addEventListener('click',()=>{
+    const lb=document.createElement('div');
+    lb.className='lightbox';
+    lb.innerHTML='<img src="'+$('letter-img').src+'"><div class="tip">點任一處關閉</div>';
+    lb.addEventListener('click',()=>lb.remove());
+    document.body.appendChild(lb);
+  });
 
   let cssLoaded=false;
   function ensureAvatarCss(){
@@ -351,12 +463,32 @@ footer{margin-top:36px;text-align:center;color:rgba(255,255,255,.75);font-size:1
     cssLoaded=true;
   }
 
+  // 拆封：蠟封裂開 → 信紙攤開 → 一行一行浮現 → 光暈掃過 → 結業紀念升起
+  let cracking=false;
   $('seal-btn').addEventListener('click',()=>{
-    $('seal-row').classList.add('hidden');
-    $('reply-panel').classList.remove('hidden');
+    if(cracking) return; cracking=true;
+    $('seal-row').classList.add('cracking');
+    setTimeout(()=>{
+      $('seal-row').classList.add('hidden');
+      $('reply-panel').classList.remove('hidden');
+      // 逐行浮現
+      const lines=$('reply-card').querySelectorAll('p');
+      lines.forEach((p,i)=>{ p.style.animationDelay=(0.28+i*0.16)+'s'; });
+      $('reply-card').classList.add('shine');
+      const total=0.28+lines.length*0.16+0.5;
+      setTimeout(()=>{
+        showKeepsake();
+        $('again-row').classList.remove('hidden');
+        cracking=false;
+      }, total*1000);
+    },480);
   });
 
-  $('btn-again').addEventListener('click',()=>{ show('scr-school'); });
+  $('btn-again').addEventListener('click',()=>{
+    document.querySelector('.wrap').classList.remove('wide');
+    $('reply-card').classList.remove('shine');
+    show('scr-school');
+  });
 })();
 </script>
 </body>
