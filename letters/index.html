@@ -207,7 +207,9 @@ button.ghost{
   border-top:1px dashed rgba(212,164,55,.3);padding-top:11px}
 .dojo-contrib b{color:var(--gold)}
 .dojo-contrib small{color:#9d8c66;font-size:11.5px}
-.hidden{display:none}
+/* 要藏就一定要藏住：.desk 底下的 display:flex 選擇器優先權比較高，
+   沒有 !important 的話，蠟封與回信會同時出現。 */
+.hidden{display:none !important}
 #again-row{margin-top:24px}
 /* 回到其他頁面 */
 .site-nav{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:34px}
