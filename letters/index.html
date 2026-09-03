@@ -101,8 +101,13 @@ button.ghost{
   box-shadow:0 0 10px rgba(255,255,255,.85);pointer-events:none;animation:burst .95s ease-out forwards}
 @keyframes burst{to{transform:translate(var(--dx),var(--dy)) scale(.25);opacity:0}}
 
-/* 書桌：左信右回信 */
-.desk{display:flex;gap:20px;align-items:flex-start;margin-top:20px}
+/* 書桌：左信右回信（電腦版兩欄等高，回信框對齊信件高度） */
+.desk{display:flex;gap:20px;align-items:stretch;margin-top:20px}
+.desk .side{display:flex;flex-direction:column}
+.desk .paper-wrap{flex:1;display:flex;align-items:center;justify-content:center}
+.desk .seal-stage{flex:1 0 auto;display:flex;flex-direction:column;justify-content:center}
+.desk .reply-wrap{flex:1 0 auto;display:flex;flex-direction:column}
+.desk .reply-card{flex:1 0 auto}
 .desk.solo{max-width:600px;margin-inline:auto}
 .desk.solo .side-right{animation:unfoldIn .6s cubic-bezier(.2,.8,.3,1) both}
 @keyframes unfoldIn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
@@ -118,7 +123,7 @@ button.ghost{
   transform:rotate(-1.2deg);transition:transform .3s;
 }
 .paper-wrap:hover{transform:rotate(0) scale(1.02)}
-.letter-img{width:100%;display:block;border-radius:8px;cursor:zoom-in}
+.letter-img{width:100%;max-width:100%;display:block;border-radius:8px;cursor:zoom-in}
 .section-tag{
   display:inline-block;background:var(--gold);color:#fff;font-size:13px;
   border-radius:99px;padding:4px 14px;margin-bottom:10px;letter-spacing:.1em;
@@ -204,10 +209,21 @@ button.ghost{
 .dojo-contrib small{color:#9d8c66;font-size:11.5px}
 .hidden{display:none}
 #again-row{margin-top:24px}
+/* 回到其他頁面 */
+.site-nav{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+.site-nav a{
+  display:inline-block;background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.45);
+  color:#fff;text-decoration:none;border-radius:99px;padding:9px 18px;font-size:14px;
+  backdrop-filter:blur(4px);transition:background .2s, transform .2s;
+}
+.site-nav a:hover{background:rgba(255,255,255,.26);transform:translateY(-2px)}
 footer{margin-top:36px;text-align:center;color:rgba(255,255,255,.75);font-size:12px;line-height:1.8}
-/* 手機：改直排，信在上、回信在下 */
+/* 手機：改直排，信在上、回信在下（不做等高，各自自然高度） */
 @media (max-width:760px){
-  .desk{flex-direction:column;gap:16px}
+  .desk{flex-direction:column;gap:16px;align-items:stretch}
+  .desk .side,.desk .paper-wrap,.desk .seal-stage,
+  .desk .reply-wrap,.desk .reply-card{flex:none;display:block;overflow:visible}
+  .desk .seal-stage{text-align:center}
   .side-right{animation:slideInUp .6s cubic-bezier(.2,.7,.3,1) .12s both}
   @keyframes slideInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
   .paper-wrap{transform:none}
@@ -317,6 +333,11 @@ footer{margin-top:36px;text-align:center;color:rgba(255,255,255,.75);font-size:1
       <button class="ghost" id="btn-again">🌊 換一位勇者查詢</button>
     </div>
   </div>
+
+  <nav class="site-nav">
+    <a href="../index.html">🏠 營隊首頁・課表與影片</a>
+    <a href="../letter.html">💌 小蚵人的公開信</a>
+  </nav>
 
   <footer>台南小蚵人說書辦桌雙語營隊・2026 夏<br>Made with ❤ &amp; 🦪</footer>
 </div>
